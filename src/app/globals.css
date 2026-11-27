@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/legacy-compat.css";
+
+@theme inline {
+  --color-bg-deep: #040f24;
+  --color-cyan-accent: #22d3ee;
+  --color-cyan-bright: #38f2ff;
+  --color-blue-primary: #1677ff;
+  --color-gold-accent: #facc15;
+}

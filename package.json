@@ -1,15 +1,47 @@
 {
   "name": "jihei-highway-digital-twin",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "G1211吉黑高速明水至北安段 工程建设项目综合管理平台（16模块/64页高保真三维数字孪生原型）",
+  "description": "G1211吉黑高速明水至北安段工程建设项目综合管理平台（Next.js 16 + CesiumJS + PostgreSQL + Better Auth + AI SDK）",
   "scripts": {
-    "start": "node server.js",
-    "check": "node scripts/check.js",
-    "smoke": "node scripts/smoke-test.js",
-    "pack": "node scripts/pack-release.js"
+    "dev": "next dev --port 3000",
+    "build": "next build && node scripts/prepare-standalone.mjs",
+    "start": "node --env-file=.env.local .next/standalone/server.js",
+    "start:next": "next start --port 3000",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "tsx src/db/seed.ts",
+    "smoke:next": "node tests/smoke-64.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.96",
+    "@ai-sdk/react": "^4.0.188",
+    "ai": "^7.0.183",
+    "better-auth": "^1.7.28",
+    "drizzle-orm": "^0.45.4",
+    "lucide-react": "^0.511.0",
+    "next": "^16.4.6",
+    "pg": "^8.16.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.15.0",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "drizzle-kit": "^0.31.1",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }

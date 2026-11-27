@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jihei_pg_2026}
+      POSTGRES_DB: jihei_highway
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-jihei_pg_2026}@db:5432/jihei_highway
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-jihei-g1211-highway-digital-twin-secret-2026-prod-key}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://127.0.0.1:8088}
+      ALLOW_DEMO_LOGIN: ${ALLOW_DEMO_LOGIN:-true}
+      NEXT_PUBLIC_ALLOW_DEMO_LOGIN: ${NEXT_PUBLIC_ALLOW_DEMO_LOGIN:-true}
+      NEXT_PUBLIC_CESIUM_ION_TOKEN: ${NEXT_PUBLIC_CESIUM_ION_TOKEN}
+      NEXT_PUBLIC_TIANDITU_TOKEN: ${NEXT_PUBLIC_TIANDITU_TOKEN}
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
