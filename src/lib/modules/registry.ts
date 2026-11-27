@@ -39,11 +39,10 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'progress',
     name: '进度管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m02_progress.js',
     subPages: [
-      { id: 'overview', name: '进度总览', cesiumMode: 'interactive' },
+      { id: 'overview', name: '进度总览', cesiumMode: 'opaque' },
       { id: 'report', name: '进度报表', cesiumMode: 'opaque' },
       { id: 'plan', name: '计划与节点', cesiumMode: 'opaque' },
       { id: 'bim_a', name: 'BIM进度模拟(方案A)', cesiumMode: 'interactive' },
@@ -53,9 +52,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'quality',
     name: '质量管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m03_quality.js',
     subPages: [
       { id: 'overview', name: '质量总览', cesiumMode: 'opaque' },
       { id: 'lab', name: '实验室', cesiumMode: 'opaque' },
@@ -68,12 +66,11 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'safety',
     name: '安全管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m04_safety.js',
     subPages: [
       { id: 'overview', name: '安全总览', cesiumMode: 'opaque' },
-      { id: 'risk', name: '风险点位', cesiumMode: 'interactive' },
+      { id: 'risk', name: '风险点位', cesiumMode: 'dimmed' },
       { id: 'ai_alert', name: '视频AI预警', cesiumMode: 'opaque' },
       { id: 'ledger', name: '隐患台账', cesiumMode: 'opaque' },
       { id: 'review', name: '整改复查', cesiumMode: 'opaque' },
@@ -156,9 +153,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'measure',
     name: '计量管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m08_measure.js',
     subPages: [
       { id: 'overview', name: '计量总览', cesiumMode: 'opaque' },
       { id: 'sectionStats', name: '分工区统计', cesiumMode: 'opaque' },

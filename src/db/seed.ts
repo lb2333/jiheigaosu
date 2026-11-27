@@ -15,6 +15,10 @@ import {
   aiMessages,
 } from './schema';
 import { auth } from '@/lib/auth';
+import { seedM02 } from '@/modules/m02_progress/seed';
+import { seedM03 } from '@/modules/m03_quality/seed';
+import { seedM04 } from '@/modules/m04_safety/seed';
+import { seedM08 } from '@/modules/m08_measure/seed';
 
 function loadEnvLocal() {
   try {
@@ -605,6 +609,12 @@ async function seed() {
       ]);
     }
   }
+
+  console.log('[seed] 开始初始化 Phase 2 领域表数据 (m02, m03, m04, m08)...');
+  await seedM02(db);
+  await seedM03(db);
+  await seedM04(db);
+  await seedM08(db);
 
   console.log('[seed] 全量初始化完成！');
 }

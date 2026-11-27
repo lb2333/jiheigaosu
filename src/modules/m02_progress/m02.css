@@ -1,0 +1,1061 @@
+/* ==========================================================================
+   m02_progress Scoped Styles (.m02-* prefix only)
+   ========================================================================== */
+
+.m02-page {
+  padding: 14px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+  color: var(--text-main);
+}
+
+/* Filter Bar */
+.m02-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(10, 34, 78, 0.86) 0%, rgba(7, 23, 56, 0.84) 100%);
+  border: 1px solid var(--border-cyan);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-panel);
+}
+.m02-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.m02-filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.m02-filter-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.m02-filter-label {
+  font-size: 12.5px;
+  color: var(--text-sub);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.m02-vdiv {
+  width: 1px;
+  height: 18px;
+  background: rgba(56, 189, 248, 0.3);
+  margin: 0 2px;
+}
+.m02-pill-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.m02-pill-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  background: rgba(11, 38, 86, 0.65);
+  color: #cfe6ff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.m02-pill-btn:hover {
+  border-color: var(--cyan);
+  color: #ffffff;
+  background: rgba(18, 72, 148, 0.65);
+}
+.m02-pill-btn.active {
+  background: linear-gradient(180deg, #1b88ff, #0b5fd6);
+  border-color: #7dd3fc;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(27, 136, 255, 0.5);
+}
+.m02-input {
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  background: rgba(8, 28, 66, 0.85);
+  color: #ffffff;
+  font-size: 12.5px;
+  outline: none;
+  min-width: 190px;
+}
+.m02-input:focus {
+  border-color: var(--cyan-bright);
+}
+.m02-input::placeholder {
+  color: var(--text-muted);
+}
+.m02-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(56, 189, 248, 0.16);
+  font-size: 12px;
+  color: var(--text-sub);
+  flex-wrap: wrap;
+}
+.m02-meta-strip strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Overview 6 KPI Cards */
+.m02-kpi-6 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.m02-kpi-card {
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(12, 42, 92, 0.78) 0%, rgba(8, 28, 64, 0.82) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-panel);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+.m02-kpi-card:hover {
+  border-color: var(--cyan-bright);
+  transform: translateY(-2px);
+}
+.m02-kpi-card.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.28);
+  background: linear-gradient(180deg, rgba(16, 62, 134, 0.88) 0%, rgba(10, 36, 82, 0.9) 100%);
+}
+.m02-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.m02-kpi-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #eaf4ff;
+}
+.m02-kpi-pct {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan-bright);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(56, 242, 255, 0.45);
+}
+.m02-kpi-foot {
+  font-size: 11.5px;
+  color: var(--text-sub);
+}
+.m02-kpi-foot strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Middle Split */
+.m02-mid-split {
+  display: grid;
+  grid-template-columns: 1.18fr 1fr;
+  gap: 12px;
+}
+.m02-mini-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+.m02-mini-track {
+  flex: 1;
+  min-width: 34px;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(14, 48, 98, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  overflow: hidden;
+}
+.m02-mini-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #0ea5e9, #38f2ff);
+  box-shadow: 0 0 8px rgba(56, 242, 255, 0.55);
+}
+.m02-mini-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #eaf4ff;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.m02-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.m02-row-clickable {
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+.m02-row-clickable:hover {
+  background: rgba(24, 82, 164, 0.35);
+}
+.m02-row-selected {
+  background: rgba(14, 116, 214, 0.34) !important;
+  box-shadow: inset 0 0 0 1px rgba(56, 242, 255, 0.72);
+}
+.m02-row-summary {
+  background: rgba(14, 62, 132, 0.48);
+  font-weight: 700;
+}
+.m02-action-link {
+  background: none;
+  border: none;
+  color: #38f2ff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.16s, color 0.16s;
+  white-space: nowrap;
+}
+.m02-action-link:hover {
+  background: rgba(56, 242, 255, 0.16);
+  color: #ffffff;
+}
+
+/* Trend Card */
+.m02-trend-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.m02-trend-box {
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: rgba(12, 42, 92, 0.58);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.m02-trend-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(14, 116, 184, 0.32);
+  border: 1px solid rgba(56, 220, 255, 0.35);
+  color: #38f2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.m02-trend-label {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+.m02-trend-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+.m02-trend-val small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-sub);
+  margin-left: 3px;
+}
+.m02-chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.m02-chart-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--text-sub);
+}
+.m02-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.m02-svg-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Page 2: Reports */
+.m02-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 12px;
+  align-items: start;
+}
+.m02-report-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.m02-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-sub);
+}
+.m02-kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.m02-kv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.14);
+  font-size: 12.5px;
+}
+.m02-kv-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-sub);
+}
+.m02-kv-v {
+  color: #ffffff;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* Page 3: Plan & Nodes */
+.m02-plan-kpi-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.m02-plan-kpi-card {
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(12, 42, 92, 0.78) 0%, rgba(8, 28, 64, 0.84) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+.m02-plan-kpi-card strong {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan-bright);
+  font-variant-numeric: tabular-nums;
+}
+.m02-plan-grid {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 290px;
+  gap: 12px;
+  align-items: start;
+}
+.m02-plan-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.m02-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.m02-tree-root {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  width: 100%;
+  text-align: left;
+}
+.m02-tree-root:hover {
+  background: rgba(56, 189, 248, 0.14);
+}
+.m02-tree-root.active {
+  background: rgba(22, 119, 255, 0.35);
+  border-color: rgba(56, 220, 255, 0.5);
+}
+.m02-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 22px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #cfe4ff;
+  font-size: 12.5px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.16s;
+}
+.m02-tree-item:hover {
+  background: rgba(18, 66, 138, 0.45);
+  color: #ffffff;
+}
+.m02-tree-item.active {
+  background: linear-gradient(90deg, rgba(22, 119, 255, 0.45), rgba(14, 165, 233, 0.25));
+  border-color: rgba(56, 220, 255, 0.72);
+  color: #ffffff;
+  font-weight: 700;
+}
+.m02-note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #dbeafe;
+}
+.m02-note-list strong {
+  color: #38f2ff;
+}
+
+/* Gantt */
+.m02-gantt-wrap {
+  position: relative;
+  overflow-x: auto;
+}
+.m02-gantt-svg {
+  width: 100%;
+  min-width: 620px;
+  display: block;
+}
+.m02-gantt-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-sub);
+  flex-wrap: wrap;
+}
+
+/* Milestone Stepper */
+.m02-ms-stepper {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px 0 2px;
+}
+.m02-ms-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 11px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    #38f2ff 0%,
+    #38f2ff 60%,
+    rgba(148, 197, 255, 0.3) 60%,
+    rgba(148, 197, 255, 0.3) 100%
+  );
+}
+.m02-ms-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.m02-ms-box {
+  width: 100%;
+  padding: 8px 6px;
+  border-radius: 8px;
+  background: rgba(12, 42, 92, 0.72);
+  border: 1px solid rgba(56, 189, 248, 0.36);
+  text-align: center;
+  transition: all 0.18s;
+}
+.m02-ms-step:hover .m02-ms-box,
+.m02-ms-step.active .m02-ms-box {
+  border-color: #38f2ff;
+  background: rgba(18, 76, 156, 0.85);
+  box-shadow: 0 0 14px rgba(56, 242, 255, 0.32);
+}
+.m02-ms-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.m02-ms-date {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.m02-ms-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #93c5fd;
+  background: #09204a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #ffffff;
+}
+.m02-ms-step.done .m02-ms-dot {
+  border-color: #38f2ff;
+  background: #0e7490;
+}
+.m02-ms-step.active .m02-ms-dot {
+  border-color: #ffffff;
+  background: #1677ff;
+  box-shadow: 0 0 10px #38f2ff;
+}
+
+/* BIM Simulation (Interactive Mode over Cesium) */
+.m02-bim-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.m02-bim-banner {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 22;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px;
+  border-radius: 99px;
+  background: linear-gradient(
+    90deg,
+    rgba(168, 122, 16, 0.88),
+    rgba(202, 138, 4, 0.72) 58%,
+    rgba(10, 34, 78, 0.88) 100%
+  );
+  border: 1px solid rgba(250, 204, 21, 0.75);
+  box-shadow: 0 6px 24px rgba(0, 8, 28, 0.6);
+  cursor: pointer;
+}
+.m02-bim-banner-main {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fef08a;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+}
+.m02-bim-banner-sub {
+  font-size: 12px;
+  color: #e2f0ff;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+}
+.m02-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.m02-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: rgba(12, 42, 92, 0.52);
+  cursor: pointer;
+  transition: all 0.16s;
+  width: 100%;
+  text-align: left;
+}
+.m02-task-row:hover {
+  border-color: rgba(56, 220, 255, 0.65);
+  background: rgba(18, 66, 138, 0.68);
+}
+.m02-task-row.active {
+  border-color: #f59e0b;
+  background: linear-gradient(90deg, rgba(180, 102, 12, 0.45), rgba(14, 46, 98, 0.72));
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.28);
+}
+.m02-task-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+.m02-badge-done {
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(6, 182, 212, 0.22);
+  border: 1px solid rgba(56, 242, 255, 0.55);
+  color: #67e8f9;
+  white-space: nowrap;
+}
+.m02-badge-doing {
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.75);
+  color: #fde68a;
+  white-space: nowrap;
+}
+.m02-badge-todo {
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+.m02-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.m02-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: #e2f0ff;
+}
+.m02-swatch {
+  width: 24px;
+  height: 11px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+.m02-swatch.done {
+  background: linear-gradient(90deg, #1b88ff, #38bdf8);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+}
+.m02-swatch.doing {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.55);
+}
+.m02-swatch.todo {
+  background: linear-gradient(90deg, #64748b, #94a3b8);
+}
+
+.m02-link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(12, 42, 92, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.36);
+  font-size: 12px;
+  color: #eaf4ff;
+  margin-bottom: 10px;
+}
+
+/* Bottom BIM Playback Dock */
+.m02-bim-dock {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 22;
+  pointer-events: auto;
+  width: min(640px, calc(100% - 580px));
+  min-width: 480px;
+  padding: 10px 16px 11px;
+  border-radius: 12px;
+  background: rgba(8, 28, 66, 0.9);
+  border: 1px solid var(--border-cyan);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.m02-bim-dock-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.m02-bim-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.m02-play-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid #7dd3fc;
+  background: linear-gradient(180deg, #2596ff, #0c5fd4);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.55);
+}
+.m02-play-circle:hover {
+  transform: scale(1.06);
+}
+.m02-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  background: rgba(12, 42, 92, 0.72);
+  color: #eaf4ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.m02-icon-circle:hover {
+  border-color: var(--cyan-bright);
+  color: #fff;
+}
+.m02-timeline-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.m02-timeline-bound {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding-bottom: 16px;
+}
+.m02-slider-wrap {
+  position: relative;
+  flex: 1;
+  padding-top: 22px;
+}
+.m02-timeline-box {
+  position: relative;
+}
+.m02-date-bubble {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: rgba(8, 32, 74, 0.95);
+  border: 1px solid #38f2ff;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 10px rgba(56, 242, 255, 0.45);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.m02-bim-range {
+  width: 100%;
+  height: 5px;
+  accent-color: #38f2ff;
+  cursor: pointer;
+}
+.m02-month-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 4px 0;
+  font-size: 10.5px;
+  color: var(--text-sub);
+}
+
+/* Optional Interactive 3D BIM Isometric Inspector Card */
+.m02-bim-inspector {
+  position: absolute;
+  left: 50%;
+  top: 64px;
+  transform: translateX(-50%);
+  z-index: 18;
+  pointer-events: auto;
+  width: min(560px, calc(100% - 580px));
+  border-radius: 12px;
+  background: rgba(6, 22, 54, 0.86);
+  border: 1px solid rgba(56, 220, 255, 0.52);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 36px rgba(0, 8, 28, 0.65);
+  overflow: hidden;
+}
+.m02-bim-insp-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: rgba(12, 42, 92, 0.72);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  font-size: 12px;
+  font-weight: 700;
+  color: #eaf4ff;
+}
+
+/* Floating BIM Scene HUD Badge (when inspector collapsed) */
+.m02-bim-hud-chip {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  transform: translateX(-50%);
+  z-index: 19;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: rgba(8, 28, 66, 0.84);
+  border: 1px solid rgba(56, 200, 255, 0.5);
+  color: #dbeafe;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+}
+.m02-bim-hud-chip strong {
+  color: #fde047;
+}
+
+/* Hide redundant top-right work-section pills on 进度总览 (already in page filter bar) */
+body.m02-hide-top-sections #sectionFilters,
+body.m02-hide-top-sections .sub-header > .sub-group-divider {
+  display: none;
+}
+
+/* Compact Polish Overrides: 01_进度总览 */
+.m02-page.m02-ov-page {
+  padding: 8px 16px 56px;
+  gap: 7px;
+}
+.m02-ov-page .m02-filter-bar {
+  padding: 6px 12px;
+}
+.m02-ov-page .m02-kpi-card {
+  padding: 6px 11px;
+  gap: 4px;
+}
+.m02-ov-page .m02-kpi-pct {
+  font-size: 17.5px;
+}
+.m02-ov-page .m02-mid-split {
+  gap: 10px;
+}
+.m02-ov-page .panel-header {
+  padding: 6px 12px;
+}
+.m02-ov-page .panel-body {
+  padding: 6px 11px 7px;
+}
+.m02-ov-page .data-table th,
+.m02-ov-page .data-table td {
+  padding: 4.5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.m02-ov-page .m02-trend-kpis {
+  gap: 7px;
+  margin-bottom: 6px;
+}
+.m02-ov-page .m02-trend-box {
+  padding: 6px 9px;
+  gap: 7px;
+}
+.m02-ov-page .m02-trend-val {
+  font-size: 14.5px;
+}
+.m02-ov-page .m02-chart-toolbar {
+  margin-bottom: 4px;
+}
+.m02-ov-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.m02-ov-page-btn {
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(56, 189, 248, 0.36);
+  background: rgba(11, 38, 86, 0.72);
+  color: #cfe6ff;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+.m02-ov-page-btn:hover:not(:disabled) {
+  border-color: var(--cyan-bright);
+  color: #ffffff;
+}
+.m02-ov-page-btn.active {
+  background: linear-gradient(180deg, #1b88ff, #0b5fd6);
+  border-color: #7dd3fc;
+  color: #ffffff;
+  font-weight: 700;
+}
+.m02-ov-page-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Compact Polish Overrides: 03_计划与节点 */
+.m02-page.m02-plan-page {
+  padding: 10px 16px 14px;
+  gap: 9px;
+}
+.m02-plan-page .m02-filter-bar {
+  padding: 7px 12px;
+}
+.m02-plan-page .m02-plan-kpi-4 {
+  gap: 9px;
+}
+.m02-plan-page .m02-plan-kpi-card {
+  padding: 7px 14px;
+  font-size: 12.5px;
+}
+.m02-plan-page .m02-plan-kpi-card strong {
+  font-size: 18px;
+}
+.m02-plan-page .m02-plan-grid {
+  grid-template-columns: 216px minmax(0, 1fr) 318px;
+  gap: 10px;
+}
+.m02-plan-page .m02-plan-col {
+  gap: 9px;
+}
+.m02-plan-page .panel-header {
+  padding: 7px 12px;
+}
+.m02-plan-page .panel-body {
+  padding: 8px 11px 10px;
+}
+.m02-plan-page .m02-tree-item {
+  padding: 5.5px 9px 5.5px 20px;
+}
+.m02-plan-page .m02-gantt-legend {
+  margin-top: 5px;
+}
+.m02-plan-page .m02-ms-box {
+  padding: 6px 5px;
+}
+.m02-plan-page .m02-node-table th,
+.m02-plan-page .m02-node-table td {
+  padding: 5.5px 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.m02-plan-page .m02-node-table th:nth-child(1),
+.m02-plan-page .m02-node-table td:nth-child(1) {
+  width: 34px;
+  text-align: center;
+}
+.m02-plan-page .m02-assoc-table th,
+.m02-plan-page .m02-assoc-table td {
+  padding: 5.5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.m02-plan-page .m02-kv-list {
+  gap: 6px;
+  margin-bottom: 9px;
+}
+.m02-plan-page .m02-kv-row {
+  padding-bottom: 5px;
+  font-size: 12px;
+}
+.m02-plan-page .btn-primary-glow {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 1320px) {
+  .m02-kpi-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .m02-mid-split {
+    grid-template-columns: 1fr;
+  }
+  .m02-report-grid {
+    grid-template-columns: 1fr;
+  }
+  .m02-plan-grid {
+    grid-template-columns: 210px 1fr;
+  }
+  .m02-plan-grid > .m02-plan-col:last-child {
+    grid-column: span 2;
+  }
+  .m02-bim-dock {
+    width: min(560px, calc(100% - 490px));
+    min-width: 400px;
+  }
+  .m02-bim-inspector {
+    width: min(520px, calc(100% - 490px));
+  }
+}
