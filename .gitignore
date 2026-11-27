@@ -1,0 +1,22 @@
+# Dependencies & build outputs
+node_modules/
+.next/
+out/
+dist-release/
+
+# Local environment & logs
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Design reference screenshots (kept locally on disk, excluded from git)
+系统界面示意图/
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,225 @@
+/* ==========================================================================
+   G1211吉黑高速明水至北安段 工程建设项目综合管理平台
+   共享模块通用样式组件库 + Ctrl+K 全局快捷直达面板样式
+   ========================================================================== */
+
+/* 通用徽章与 KPI 卡片组件 */
+.jihei-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.jihei-badge.ok { background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.42); }
+.jihei-badge.warn { background: rgba(250, 204, 21, 0.16); color: #fde047; border: 1px solid rgba(250, 204, 21, 0.44); }
+.jihei-badge.danger { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.48); }
+.jihei-badge.info { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.44); }
+.jihei-badge.muted { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.34); }
+
+.jihei-kpi-card {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: rgba(12, 42, 92, 0.62);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.jihei-kpi-card.tone-green { border-color: rgba(74, 222, 128, 0.42); }
+.jihei-kpi-card.tone-gold { border-color: rgba(250, 204, 21, 0.45); }
+.jihei-kpi-label { font-size: 11.5px; color: var(--text-sub); }
+.jihei-kpi-val-row { display: flex; align-items: baseline; gap: 5px; }
+.jihei-kpi-val {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--cyan-bright);
+  font-variant-numeric: tabular-nums;
+}
+.jihei-kpi-unit { font-size: 11.5px; color: #cfe4ff; }
+.jihei-kpi-trend { margin-left: auto; font-size: 11px; color: #4ade80; }
+
+.jihei-empty {
+  padding: 28px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-sub);
+  font-size: 12.5px;
+}
+
+.jihei-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.jihei-pagination strong { color: var(--cyan-bright); }
+.jihei-page-btns { display: inline-flex; gap: 6px; }
+.jihei-page-btns button:disabled { opacity: 0.42; cursor: not-allowed; }
+
+/* 日期基准对比标签 */
+.date-delta-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(250, 204, 21, 0.16);
+  border: 1px solid rgba(250, 204, 21, 0.48);
+  color: #fde047;
+}
+
+/* 顶部快捷搜索按钮 (Ctrl+K) */
+.cmdk-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(96, 165, 250, 0.42);
+  background: rgba(10, 32, 72, 0.68);
+  color: #cfe4ff;
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+}
+.cmdk-trigger-btn:hover {
+  border-color: var(--cyan-bright);
+  color: #ffffff;
+  background: rgba(14, 165, 233, 0.32);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.38);
+}
+.cmdk-kbd {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(4, 18, 44, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  color: #7dd3fc;
+}
+
+/* Ctrl+K 全局命令直达面板 */
+.cmdk-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(2, 10, 26, 0.72);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: min(12vh, 96px);
+}
+.cmdk-backdrop.open { display: flex; }
+
+.cmdk-dialog {
+  width: min(620px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(10, 34, 78, 0.98), rgba(6, 20, 50, 0.98));
+  border: 1.5px solid rgba(56, 220, 255, 0.72);
+  box-shadow: 0 26px 64px rgba(0, 6, 24, 0.88), 0 0 32px rgba(14, 165, 233, 0.32);
+  overflow: hidden;
+  animation: modalIn 0.16s ease;
+}
+.cmdk-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(12, 42, 92, 0.52);
+  color: #7dd3fc;
+}
+.cmdk-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+}
+.cmdk-input::placeholder { color: #7ca3cc; }
+
+.cmdk-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cmdk-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #e6f2ff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.cmdk-item:hover,
+.cmdk-item.active {
+  background: rgba(22, 119, 255, 0.26);
+  border-color: rgba(56, 220, 255, 0.58);
+  color: #ffffff;
+}
+.cmdk-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cmdk-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmdk-item-cat {
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  background: rgba(14, 52, 112, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+  flex-shrink: 0;
+}
+.cmdk-item-sub {
+  font-size: 11.5px;
+  color: #93c5fd;
+  white-space: nowrap;
+}
+.cmdk-footer {
+  padding: 7px 14px;
+  border-top: 1px solid rgba(56, 189, 248, 0.18);
+  background: rgba(6, 20, 48, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-sub);
+}
