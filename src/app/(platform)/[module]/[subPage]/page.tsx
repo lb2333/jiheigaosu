@@ -10,9 +10,12 @@ import { MaterialModule } from '@/modules/m07_material/MaterialModule';
 import { MeasureModule } from '@/modules/m08_measure/MeasureModule';
 import { UavModule } from '@/modules/m09_uav/UavModule';
 import { VideoModule } from '@/modules/m10_video/VideoModule';
+import { SpeedModule } from '@/modules/m11_speed/SpeedModule';
+import { PinganModule } from '@/modules/m12_pingan/PinganModule';
+import { PublishModule } from '@/modules/m13_publish/PublishModule';
+import { BlacksoilModule } from '@/modules/m14_blacksoil/BlacksoilModule';
 import { SystemModule } from '@/modules/m15-system/SystemModule';
 import { AiWorkbenchModule } from '@/modules/m16-ai/AiWorkbenchModule';
-import { LegacyModuleHost } from '@/components/legacy/LegacyModuleHost';
 
 export default async function ModuleSubPage({
   params,
@@ -57,6 +60,18 @@ export default async function ModuleSubPage({
   if (mod.id === 'video') {
     return <VideoModule subPageId={sub.id} />;
   }
+  if (mod.id === 'speed') {
+    return <SpeedModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'pingan') {
+    return <PinganModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'publish') {
+    return <PublishModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'blacksoil') {
+    return <BlacksoilModule subPageId={sub.id} />;
+  }
   if (mod.id === 'system') {
     return <SystemModule subPageId={sub.id} />;
   }
@@ -64,5 +79,5 @@ export default async function ModuleSubPage({
     return <AiWorkbenchModule subPageId={sub.id} />;
   }
 
-  return <LegacyModuleHost mod={mod} subPageId={sub.id} />;
+  notFound();
 }

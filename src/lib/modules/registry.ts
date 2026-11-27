@@ -1,5 +1,5 @@
 export type CesiumMode = 'interactive' | 'dimmed' | 'opaque';
-export type ModuleMode = 'native' | 'legacy';
+export type ModuleMode = 'native';
 
 export interface SubPageDef {
   id: string;
@@ -12,7 +12,6 @@ export interface ModuleDef {
   name: string;
   mode: ModuleMode;
   showInTopNav: boolean;
-  legacyScript?: string;
   subPages: SubPageDef[];
 }
 
@@ -79,9 +78,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'pingan',
     name: '平安工地',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m12_pingan.js',
     subPages: [
       { id: 'showcase', name: '项目展示', cesiumMode: 'opaque' },
       { id: 'topics', name: '专题管理', cesiumMode: 'opaque' },
@@ -160,11 +158,10 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'speed',
     name: '智慧提速',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m11_speed.js',
     subPages: [
-      { id: 'traffic', name: '交通运行', cesiumMode: 'opaque' },
+      { id: 'traffic', name: '交通运行', cesiumMode: 'interactive' },
       { id: 'algorithm', name: '算法研判', cesiumMode: 'opaque' },
       { id: 'strategy', name: '速度策略', cesiumMode: 'opaque' },
       { id: 'feedback', name: '执行反馈', cesiumMode: 'opaque' },
@@ -174,9 +171,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'publish',
     name: '信息发布',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m13_publish.js',
     subPages: [
       { id: 'overview', name: '情报板总览', cesiumMode: 'opaque' },
       { id: 'templates', name: '内容模板', cesiumMode: 'opaque' },
@@ -188,9 +184,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'blacksoil',
     name: '黑土地保护',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m14_blacksoil.js',
     subPages: [
       { id: 'compare', name: '遥感影像对比', cesiumMode: 'opaque' },
     ],

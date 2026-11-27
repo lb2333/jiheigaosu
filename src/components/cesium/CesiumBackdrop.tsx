@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
 import { usePlatformStore } from '@/lib/store/platform-store';
-import { STATIC_POI_OBJECTS, STATIC_WORK_SECTIONS } from '@/lib/modules/legacy-data';
+import { STATIC_POI_OBJECTS, STATIC_WORK_SECTIONS } from '@/lib/modules/platform-data';
 
 export function CesiumBackdrop() {
   const containerRef = useRef<HTMLDivElement | null>(null);

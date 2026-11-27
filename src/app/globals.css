@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
-@import "../styles/legacy-compat.css";
+@import "../styles/platform-shell.css";
 
 @theme inline {
   --color-bg-deep: #040f24;

@@ -29,7 +29,7 @@ import {
   ROAMING_STATIONS,
   STATIC_POI_OBJECTS,
   STATIC_WORK_SECTIONS,
-} from '@/lib/modules/legacy-data';
+} from '@/lib/modules/platform-data';
 import { DATE_PRESETS } from '@/lib/modules/registry';
 
 interface ApiSection {
@@ -250,10 +250,13 @@ export function HomeModule({ subPageId }: { subPageId: string }) {
         showPois: false,
         icons: LEGACY_ICONS,
       });
-      ces.setShowcaseBackdropMode(true);
     } else {
       ces.setShowcaseBackdropMode(false);
     }
+
+    return () => {
+      if (ces.ready) ces.setShowcaseBackdropMode(false);
+    };
   }, [
     activeSectionId,
     cesiumReady,
@@ -266,6 +269,16 @@ export function HomeModule({ subPageId }: { subPageId: string }) {
     setCesiumMode,
     subPageId,
   ]);
+
+  // Frame stationary G1211 overview once when entering showcase
+  useEffect(() => {
+    const ces = getGlobalCesiumEngine();
+    if (subPageId !== 'showcase' || !ces.ready) return;
+    ces.setShowcaseBackdropMode(true);
+    return () => {
+      if (ces.ready) ces.setShowcaseBackdropMode(false);
+    };
+  }, [subPageId, cesiumReady]);
 
   // Simulation timers
   useEffect(() => {

@@ -14,7 +14,7 @@ import {
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
-import { LEGACY_ICONS, STATIC_POI_OBJECTS } from '@/lib/modules/legacy-data';
+import { LEGACY_ICONS, STATIC_POI_OBJECTS } from '@/lib/modules/platform-data';
 import { usePlatformStore } from '@/lib/store/platform-store';
 import type { M02BimObject, M02BimResponse, M02BimTask } from '../types';
 import { M02Icon } from './M02Icon';

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Calendar, Search, Settings } from 'lucide-react';
 import { DATE_PRESETS, getModuleDef, MODULE_REGISTRY } from '@/lib/modules/registry';
-import { STATIC_WORK_SECTIONS } from '@/lib/modules/legacy-data';
+import { STATIC_WORK_SECTIONS } from '@/lib/modules/platform-data';
 import { usePlatformStore } from '@/lib/store/platform-store';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
 
@@ -50,14 +50,14 @@ export function SubNavBar() {
 
   function handlePlatformInfoModal() {
     const nativeCount = MODULE_REGISTRY.filter((m) => m.mode === 'native').length;
-    const legacyCount = MODULE_REGISTRY.filter((m) => m.mode === 'legacy').length;
+    const totalPages = MODULE_REGISTRY.reduce((sum, m) => sum + m.subPages.length, 0);
     openModalHtml(
-      '系统平台 · Next.js 全栈双轨架构状态',
+      '系统平台 · Next.js 全栈原生架构状态',
       `
-        <p style="color:#dbeafe;line-height:1.7;">当前平台已升级为 <strong>Next.js 16 + PostgreSQL 16 + Better Auth RBAC + Vercel AI SDK</strong> 全栈架构，全量覆盖 <strong>16 个业务模块 / 64 个页面</strong>。</p>
+        <p style="color:#dbeafe;line-height:1.7;">当前平台已全面升级为 <strong>Next.js 16 + PostgreSQL 16 + Better Auth RBAC + Vercel AI SDK</strong> 原生全栈架构，全量覆盖 <strong>${MODULE_REGISTRY.length} 个业务模块 / ${totalPages} 个页面</strong>。</p>
         <div class="detail-grid">
-          <div class="detail-stat-card"><span>原生 React 全栈模块</span><strong>${nativeCount} 个模块（首页/系统/AI）</strong></div>
-          <div class="detail-stat-card"><span>Strangler Fig 双轨模块</span><strong>${legacyCount} 个模块（零中断运行）</strong></div>
+          <div class="detail-stat-card"><span>原生 React 全栈模块</span><strong>${nativeCount} / ${MODULE_REGISTRY.length} 个模块（100% 原生化）</strong></div>
+          <div class="detail-stat-card"><span>持久化三维底座</span><strong>CesiumJS 跨 ${totalPages} 页共享引擎</strong></div>
           <div class="detail-stat-card"><span>统计基准日期</span><strong>${selectedDate}</strong></div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid rgba(56,189,248,0.2);">

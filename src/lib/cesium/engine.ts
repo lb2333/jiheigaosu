@@ -881,9 +881,6 @@ export class JiheiCesiumEngine {
     this.viewer.scene.postRender.addEventListener(() => {
       if (!this.renderActive) return;
       this._updateProjectedPositions();
-      if (this.orbitActive) {
-        this.viewer.camera.rotateRight(0.00035);
-      }
     });
 
     const handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
@@ -1043,7 +1040,11 @@ export class JiheiCesiumEngine {
   }
 
   setShowcaseBackdropMode(active: boolean) {
-    this.orbitActive = !!active;
+    this.orbitActive = false;
+    if (active && this.ready && this.viewer) {
+      this.viewer.camera.cancelFlight?.();
+      this.flyToOverview(1.0);
+    }
   }
 
   zoomIn() {

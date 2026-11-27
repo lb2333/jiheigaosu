@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { getAllPageCatalog } from '@/lib/modules/registry';
-import { STATIC_POI_OBJECTS, STATIC_WORK_SECTIONS } from '@/lib/modules/legacy-data';
+import { STATIC_POI_OBJECTS, STATIC_WORK_SECTIONS } from '@/lib/modules/platform-data';
 import { usePlatformStore } from '@/lib/store/platform-store';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
 
@@ -57,7 +57,7 @@ export function CommandPalette() {
     const pages = getAllPageCatalog().map((p) => ({
       category: p.modName,
       title: p.name,
-      sub: `${p.href} · ${p.mode === 'native' ? '原生' : '双轨'}`,
+      sub: `${p.href} · 原生全栈`,
       keywords: `${p.modName} ${p.name} ${p.mod} ${p.sub}`.toLowerCase(),
       run: () => router.push(p.href),
     }));

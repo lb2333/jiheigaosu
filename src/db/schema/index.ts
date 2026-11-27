@@ -10,3 +10,7 @@ export * from './domains/m07';
 export * from './domains/m08';
 export * from './domains/m09';
 export * from './domains/m10';
+export * from './domains/m11';
+export * from './domains/m12';
+export * from './domains/m13';
+export * from './domains/m14';

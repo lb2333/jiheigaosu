@@ -1,6 +1,6 @@
 # G1211吉黑高速明水至北安段工程建设项目综合管理平台 — Next.js 全栈架构交接规范（HANDOFF）
 
-> 本平台已由原生 HTML/JS 原型升级为 **Next.js 16 + React 19 + TypeScript + Tailwind CSS v4 + PostgreSQL 16 + Drizzle ORM + Better Auth RBAC + Vercel AI SDK + Nginx** 全栈生产架构（采用 **Strangler Fig 渐进双轨迁移**，全量 **16 模块 / 64 页** 已 100% 跑通）。
+> 本平台已由原生 HTML/JS 原型全面升级为 **Next.js 16 + React 19 + TypeScript + Tailwind CSS v4 + PostgreSQL 16 + Drizzle ORM + Better Auth RBAC + Vercel AI SDK + Nginx** 全栈生产架构，全量 **16 模块 / 64 页已 100% 完成原生 React 全栈迁移**（原 Strangler Fig 双轨兼容层 `LegacyModuleHost`、`public/legacy/`、`legacy-compat.css` 与 `legacy-data.ts` 已全面退役清理）。
 
 ---
 
@@ -32,12 +32,12 @@
 
 ---
 
-## 3. 核心底座与迁移双轨机制
+## 3. 核心底座与全量原生模块化架构
 
-1. **持久化 CesiumJS 底座**：`public/lib/cesium/`（18.77MB 本地内核）+ `src/lib/cesium/engine.ts` + `src/components/cesium/CesiumBackdrop.tsx` 挂载于 `src/app/(platform)/layout.tsx`，跨 64 个子路由不卸载 WebGL，按路由 `cesiumMode`（`interactive | dimmed | opaque`）自动暂停/恢复渲染循环。
-2. **Strangler Fig 桥接层**：`src/components/legacy/LegacyModuleHost.tsx` 注入 `window.JIHEI_PLATFORM` 垫片，按需加载剩余 4 个未原生化模块（`m11`–`m14`）的 `public/legacy/js/modules/*.js` 并同步工区、日期、弹窗、Toast 与路由跳转；已完成原生化的模块脚本已清理删除。
+1. **持久化 CesiumJS 底座**：`public/lib/cesium/`（18.77MB 本地内核）+ `src/lib/cesium/engine.ts` + `src/components/cesium/CesiumBackdrop.tsx` 挂载于 `src/app/(platform)/layout.tsx`，跨 64 个子路由不卸载 WebGL，按路由 `cesiumMode`（`interactive | dimmed | opaque`）自动暂停/恢复渲染循环；各业务模块通过 `engine.trackModuleEntity(moduleId, ...)` 与 `engine.clearModuleEntities(moduleId)` 管理模块级三维实体生命周期。
+2. **全量原生路由与平台底座**：`src/app/(platform)/[module]/[subPage]/page.tsx` 按 `src/lib/modules/registry.ts`（`16` 个模块全部为 `mode: 'native'`）直接渲染对应原生 React 模块组件；全局壳层样式统一收敛至 `src/styles/platform-shell.css`，静态基础目录统一收敛至 `src/lib/modules/platform-data.ts`；原 `LegacyModuleHost`、`public/legacy/` 及 `/legacy/` 代理白名单已全部清理退役。
 3. **共享 UI 组件库**：`src/components/ui/`（`GlassPanel`、`KpiCard`、`StatusBadge`、`DataTable`、`SplitImageCompare`、`SparklineDonut`、`DonutSvg`）。
-4. **模块总表（`src/lib/modules/registry.ts` — 已原生 12 模块 / 51 页，双轨运行 4 模块 / 13 页）**：
+4. **模块总表（`src/lib/modules/registry.ts` — 16 模块 / 64 页 100% 原生全栈）**：
 
 | 状态 | 模块 | 路由前缀 | 子页数 | 后端 API & Schema / 说明 |
 |---|---|---|---|---|
@@ -51,14 +51,17 @@
 | ✅ 原生全栈 | `8. 计量管理` | `/measure/*` | 4 页 | `src/modules/m08_measure/` + `/api/v1/m08/*` (`overview`, `sections`, `physical-compare`, `records`) + `src/db/schema/domains/m08.ts` |
 | ✅ 原生全栈 | `9. 无人机巡检` | `/uav/*` | 6 页 | `src/modules/m09_uav/` + `/api/v1/m09/*` (`overview`, `tasks`, `routes`, `live`, `hazards`, `reports`) + `src/db/schema/domains/m09.ts`（含 Cesium 机巢/航线实体追踪及确认隐患推送 `m04`） |
 | ✅ 原生全栈 | `10. 视频监控` | `/video/*` | 4 页 | `src/modules/m10_video/` + `/api/v1/m10/*` (`cameras`, `patrol-groups`, `playback`, `airground`) + `src/db/schema/domains/m10.ts` |
+| ✅ 原生全栈 | `11. 智慧提速` | `/speed/*` | 5 页 | `src/modules/m11_speed/` + `/api/v1/m11/*` (`overview`, `algorithm`, `strategies`, `strategies/[segId]/audit`, `feedback`, `feedback/[batchId]/retry`, `replays`) + `src/db/schema/domains/m11.ts`（含 `traffic`/`replay` 交互式 Cesium 示范路段实体追踪） |
+| ✅ 原生全栈 | `12. 平安工地` | `/pingan/*` | 2 页 | `src/modules/m12_pingan/` + `/api/v1/m12/*` (`showcase`, `topics`, `topics/[id]`) + `src/db/schema/domains/m12.ts` |
+| ✅ 原生全栈 | `13. 信息发布` | `/publish/*` | 5 页 | `src/modules/m13_publish/` + `/api/v1/m13/*` (`overview`, `templates`, `templates/[id]`, `orders`, `orders/[id]/action`, `plans`, `plans/[id]`, `receipts`, `receipts/action`) + `src/db/schema/domains/m13.ts` |
+| ✅ 原生全栈 | `14. 黑土地保护` | `/blacksoil/*` | 1 页 | `src/modules/m14_blacksoil/` + `/api/v1/m14/*` (`parcels`, `parcels/[id]`) + `src/db/schema/domains/m14.ts`（复用共享 `SplitImageCompare` 卷帘影像对比与矢量叠加） |
 | ✅ 原生全栈 | `15. 系统管理` | `/system/*` | 6 页 | `src/modules/m15-system/` + Better Auth RBAC + PostgreSQL 审计日志 |
 | ✅ 原生全栈 | `16. AI助手` | `/ai/*` | 3 页 | `src/modules/m16-ai/` + AI SDK 流式对话/查库工具/会话落库 |
-| 🔄 双轨运行 | `11.~14. 专题业务模块` | `/speed/*`、`/pingan/*`、`/publish/*`、`/blacksoil/*` | 13 页 | `public/legacy/js/modules/m11~m14` 经 `LegacyModuleHost` 运行，待 Phase 4 原生化 |
 
 ---
 
-## 4. Phase 2 ~ 4 并行重构批次规划（`/teamwork`）
+## 4. Phase 2 ~ 4 并行重构批次归档（`/teamwork`）
 
 - ✅ **Phase 2（批次 A · 核心建管 4 模块 / 20 页，已完成原生全栈重构）**：`m02_progress`（5 页）、`m03_quality`（6 页）、`m04_safety`（5 页）、`m08_measure`（4 页），已接入 Better Auth 会话鉴权、PostgreSQL 领域表（`src/db/schema/domains/m02.ts`~`m08.ts`）及 `pnpm db:seed` 幂等初始化，通过 `pnpm typecheck`、`pnpm build` 与 `pnpm smoke:next` 64/64 巡检。
 - ✅ **Phase 3（批次 B · 人机料与监测 5 模块 / 18 页，已完成原生全栈重构）**：`m05_staff`（2 页）、`m06_machine`（2 页）、`m07_material`（4 页）、`m09_uav`（6 页）、`m10_video`（4 页），已接入 Better Auth 会话鉴权与 RBAC、PostgreSQL 领域表（`src/db/schema/domains/m05.ts`~`m10.ts`）及 `pnpm db:seed` 幂等初始化，通过 `pnpm typecheck`、`pnpm build`（standalone）、`pnpm smoke:next` 64/64 巡检与 `/api/v1/m05`~`m10` 鉴权校验。
-- **Phase 4（批次 C · 特色专题与收口 4 模块 / 13 页）**：`m11-speed`、`m12-pingan`、`m13-publish`、`m14-blacksoil`，全部转 `'native'` 后删除 `LegacyModuleHost` 与 `public/legacy/`。
+- ✅ **Phase 4（批次 C · 特色专题与收官 4 模块 / 13 页，已完成原生全栈重构并退出双轨）**：`m11_speed`（5 页，含 `traffic`/`replay` Cesium 示范路段实体追踪）、`m12_pingan`（2 页）、`m13_publish`（5 页）、`m14_blacksoil`（1 页，复用 `SplitImageCompare`），全部切换 `mode: 'native'` 并彻底清理 `LegacyModuleHost`、`public/legacy/`、`legacy-compat.css` 与 `legacy-data.ts`，实现 **16 模块 / 64 页 100% 原生全栈化**。

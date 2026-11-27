@@ -11,7 +11,6 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/lib/') ||
     pathname.startsWith('/assets/') ||
-    pathname.startsWith('/legacy/') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next();
@@ -35,6 +34,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|lib/|assets/|legacy/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|lib/|assets/).*)',
   ],
 };

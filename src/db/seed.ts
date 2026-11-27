@@ -24,6 +24,10 @@ import { seedM07 } from '@/modules/m07_material/seed';
 import { seedM08 } from '@/modules/m08_measure/seed';
 import { seedM09 } from '@/modules/m09_uav/seed';
 import { seedM10 } from '@/modules/m10_video/seed';
+import { seedM11 } from '@/modules/m11_speed/seed';
+import { seedM12 } from '@/modules/m12_pingan/seed';
+import { seedM13 } from '@/modules/m13_publish/seed';
+import { seedM14 } from '@/modules/m14_blacksoil/seed';
 
 function loadEnvLocal() {
   try {
@@ -627,6 +631,12 @@ async function seed() {
   await seedM07(db);
   await seedM09(db);
   await seedM10(db);
+
+  console.log('[seed] 开始初始化 Phase 4 领域表数据 (m11, m12, m13, m14)...');
+  await seedM11(db);
+  await seedM12(db);
+  await seedM13(db);
+  await seedM14(db);
 
   console.log('[seed] 全量初始化完成！');
 }
