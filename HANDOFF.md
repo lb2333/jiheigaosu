@@ -34,7 +34,8 @@
 
 ## 3. 核心底座与全量原生模块化架构
 
-1. **持久化 CesiumJS 底座**：`public/lib/cesium/`（18.77MB 本地内核）+ `src/lib/cesium/engine.ts` + `src/components/cesium/CesiumBackdrop.tsx` 挂载于 `src/app/(platform)/layout.tsx`，跨 64 个子路由不卸载 WebGL，按路由 `cesiumMode`（`interactive | dimmed | opaque`）自动暂停/恢复渲染循环；各业务模块通过 `engine.trackModuleEntity(moduleId, ...)` 与 `engine.clearModuleEntities(moduleId)` 管理模块级三维实体生命周期。
+1. **持久化 CesiumJS 底座**：`public/lib/cesium/`（18.77MB 本地内核）+ `src/lib/cesium/engine.ts` + `src/lib/cesium/highway-assets.ts` + `src/components/cesium/CesiumBackdrop.tsx` 挂载于 `src/app/(platform)/layout.tsx`，跨 64 个子路由不卸载 WebGL，按路由 `cesiumMode`（`interactive | dimmed | opaque`）自动暂停/恢复渲染循环；各业务模块通过 `engine.trackModuleEntity(moduleId, ...)` 与 `engine.clearModuleEntities(moduleId)` 管理模块级三维实体生命周期。
+   - **三维公路/桥梁/互通与 4D BIM 模型资产**：`scripts/blender/generate_highway_models.py`（导出 `public/models/*.glb` 5 套轻量低模），沿 `ROUTE_COORDS` 装配 4 处互通立交 + 26 座主线新建桥（7 大 / 8 中 / 11 小，横跨主线）+ 贴地双向四车道 26m 路面；另 `scripts/blender/generate_bim_stage_models.py` 为「2.进度管理」4D BIM 模拟生成 `public/models/bim/*.glb`（4 个对象 × 4 道分工序模型，共 16 个 `.glb`），支持按施工日期精准分部位着蓝/琥珀/灰白半透明色并自动隐藏重叠常规模板。
 2. **全量原生路由与平台底座**：`src/app/(platform)/[module]/[subPage]/page.tsx` 按 `src/lib/modules/registry.ts`（`16` 个模块全部为 `mode: 'native'`）直接渲染对应原生 React 模块组件；全局壳层样式统一收敛至 `src/styles/platform-shell.css`，静态基础目录统一收敛至 `src/lib/modules/platform-data.ts`；原 `LegacyModuleHost`、`public/legacy/` 及 `/legacy/` 代理白名单已全部清理退役。
 3. **共享 UI 组件库**：`src/components/ui/`（`GlassPanel`、`KpiCard`、`StatusBadge`、`DataTable`、`SplitImageCompare`、`SparklineDonut`、`DonutSvg`）。
 4. **模块总表（`src/lib/modules/registry.ts` — 16 模块 / 64 页 100% 原生全栈）**：

@@ -13,6 +13,7 @@ export function CesiumBackdrop() {
   const setCesiumReady = usePlatformStore((s) => s.setCesiumReady);
   const setSelectedPoiId = usePlatformStore((s) => s.setSelectedPoiId);
   const toggleSectionId = usePlatformStore((s) => s.toggleSectionId);
+  const openModalHtml = usePlatformStore((s) => s.openModalHtml);
   const showToast = usePlatformStore((s) => s.showToast);
 
   useEffect(() => {
@@ -68,6 +69,26 @@ export function CesiumBackdrop() {
         onDirectionClick: (dir) => {
           showToast(dir === 'start' ? '已定位至明水方向起点（一工区）' : '已定位至北安方向终点（六工区）');
         },
+        onAssetClick: (asset) => {
+          showToast(`已飞抵${asset.categoryLabel}：${asset.name}（${asset.stake}）`);
+          openModalHtml(
+            `三维构造物 · ${asset.name}`,
+            `
+            <div class="detail-grid">
+              <div class="detail-stat-card"><span>构造物分类</span><strong>${asset.categoryLabel}</strong></div>
+              <div class="detail-stat-card"><span>所属工区 / 桩号</span><strong>${asset.sectionName} · ${asset.stake}</strong></div>
+              <div class="detail-stat-card"><span>断面标准</span><strong>${asset.roadbedWidth}（双向四车道）</strong></div>
+            </div>
+            <table class="data-table">
+              <tbody>
+                <tr><th style="width:130px;">构造物名称</th><td>${asset.name}</td><th style="width:130px;">设计行车速度</th><td>${asset.designSpeed}</td></tr>
+                <tr><th>结构特征说明</th><td colspan="3">${asset.structureDesc}</td></tr>
+                <tr><th>三维展现方式</th><td colspan="3">${asset.modelTemplateLabel ? `Blender 5.0 参数化低模复用：<code>${asset.modelTemplateLabel}</code>` : '地图点位标注（服务区/养护工区暂不上模型）'}</td></tr>
+              </tbody>
+            </table>
+            `
+          );
+        },
         onFallbackNotice: (msg) => showToast(msg),
       });
 
@@ -84,7 +105,7 @@ export function CesiumBackdrop() {
     return () => {
       cancelled = true;
     };
-  }, [setCesiumReady, setSelectedPoiId, showToast, toggleSectionId]);
+  }, [openModalHtml, setCesiumReady, setSelectedPoiId, showToast, toggleSectionId]);
 
   useEffect(() => {
     const engine = getGlobalCesiumEngine();

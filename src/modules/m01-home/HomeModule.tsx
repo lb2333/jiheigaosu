@@ -215,6 +215,7 @@ export function HomeModule({ subPageId }: { subPageId: string }) {
         satellite: false,
         uav: true,
         bim: roamingRenderMode === 'design',
+        models: true,
         pois: true,
         sections: true,
         route: true,
@@ -238,6 +239,7 @@ export function HomeModule({ subPageId }: { subPageId: string }) {
         satellite: false,
         uav: true,
         bim: true,
+        models: true,
         pois: true,
         sections: true,
         route: true,
@@ -1181,6 +1183,7 @@ export function HomeModule({ subPageId }: { subPageId: string }) {
   const layerItems: Array<{ key: keyof typeof p1Layers; label: string; icon: React.ReactNode }> = [
     { key: 'satellite', label: '高分遥感影像', icon: <Compass size={15} /> },
     { key: 'uav', label: '无人机倾斜摄影', icon: <Camera size={15} /> },
+    { key: 'models', label: '三维模型', icon: <Landmark size={15} /> },
     { key: 'bim', label: 'BIM模型', icon: <Box size={15} /> },
     { key: 'pois', label: '工程点位', icon: <MapPin size={15} /> },
     { key: 'sections', label: '工区', icon: <Layers size={15} /> },

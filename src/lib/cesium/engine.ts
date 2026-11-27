@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
+import {
+  ALL_HIGHWAY_ASSETS,
+  getPointAtRatio,
+  HIGHWAY_FACILITIES,
+  HIGHWAY_MODEL_ASSETS,
+  type HighwayAssetItem,
+  ROUTE_COORDS,
+  sampleRoutePose,
+  SECTION_RANGES,
+} from './highway-assets';
+
 declare global {
   interface Window {
     Cesium?: any;
@@ -17,67 +28,80 @@ const CESIUM_ION_TOKEN =
 const TDT_TK = process.env.NEXT_PUBLIC_TIANDITU_TOKEN ?? 'd0ff04fb27c18bfd43ef85d3dcf4dc7f';
 const OFFLINE_ERROR_THRESHOLD = 6;
 
-const CONTROL_POINTS: [number, number][] = [
-  [125.8202, 47.2916],
-  [125.915, 47.362],
-  [125.982, 47.452],
-  [126.015, 47.552],
-  [125.992, 47.652],
-  [126.028, 47.748],
-  [126.135, 47.838],
-  [126.252, 47.926],
-  [126.328, 48.028],
-  [126.362, 48.135],
-  [126.4135, 48.2372],
-];
-
-function interpolateSpline(pts: [number, number][], samplesPerSeg: number): [number, number][] {
-  const out: [number, number][] = [];
-  const n = pts.length;
-  for (let i = 0; i < n - 1; i++) {
-    const p0 = pts[Math.max(0, i - 1)];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[Math.min(n - 1, i + 2)];
-    for (let s = 0; s < samplesPerSeg; s++) {
-      const t = s / samplesPerSeg;
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const lon =
-        0.5 *
-        (2 * p1[0] +
-          (-p0[0] + p2[0]) * t +
-          (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
-          (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3);
-      const lat =
-        0.5 *
-        (2 * p1[1] +
-          (-p0[1] + p2[1]) * t +
-          (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
-          (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3);
-      out.push([lon, lat]);
-    }
-  }
-  out.push(pts[n - 1]);
-  return out;
-}
-
-const ROUTE_COORDS = interpolateSpline(CONTROL_POINTS, 18);
-
-const SECTION_RANGES = [
-  { id: 'sec1', name: '一工区', start: 0.0, end: 0.16, color: '#22d3ee' },
-  { id: 'sec2', name: '二工区', start: 0.16, end: 0.34, color: '#06b6d4' },
-  { id: 'sec3', name: '三工区', start: 0.34, end: 0.51, color: '#38bdf8' },
-  { id: 'sec4', name: '四工区', start: 0.51, end: 0.68, color: '#22d3ee' },
-  { id: 'sec5', name: '五工区', start: 0.68, end: 0.84, color: '#0ea5e9' },
-  { id: 'sec6', name: '六工区', start: 0.84, end: 1.0, color: '#38f2ff' },
-];
-
 export const POI_GEO: Record<string, { lon: number; lat: number; alt: number }> = {
   bridgeA: { lon: 125.982, lat: 47.452, alt: 235 },
   beamYardA: { lon: 126.115, lat: 47.508, alt: 220 },
   batchPlantA: { lon: 126.135, lat: 47.402, alt: 218 },
 };
+
+interface BimStageSpec {
+  id: string;
+  name: string;
+  resolvePose: () => { lon: number; lat: number; headingRad: number };
+  focusRange: number;
+  focusRadius: number;
+  stages: [string, string, string, string];
+  overlapAssetId?: string;
+}
+
+const BIM_STAGE_CONFIGS: BimStageSpec[] = [
+  {
+    id: 'bridgeA',
+    name: '桥梁示例A',
+    resolvePose: () => {
+      const p = sampleRoutePose(0.2);
+      return { lon: p.lon, lat: p.lat, headingRad: p.headingRad + Math.PI / 2 };
+    },
+    focusRange: 540,
+    focusRadius: 165,
+    stages: [
+      '/models/bim/bim-bridge-s1.glb',
+      '/models/bim/bim-bridge-s2.glb',
+      '/models/bim/bim-bridge-s3.glb',
+      '/models/bim/bim-bridge-s4.glb',
+    ],
+    overlapAssetId: 'br_l2',
+  },
+  {
+    id: 'beamYardA',
+    name: '梁场示例A',
+    resolvePose: () => ({ lon: POI_GEO.beamYardA.lon, lat: POI_GEO.beamYardA.lat, headingRad: 0.35 }),
+    focusRange: 360,
+    focusRadius: 110,
+    stages: [
+      '/models/bim/bim-yard-s1.glb',
+      '/models/bim/bim-yard-s2.glb',
+      '/models/bim/bim-yard-s3.glb',
+      '/models/bim/bim-yard-s4.glb',
+    ],
+  },
+  {
+    id: 'batchPlantA',
+    name: '拌合站示例A',
+    resolvePose: () => ({ lon: POI_GEO.batchPlantA.lon, lat: POI_GEO.batchPlantA.lat, headingRad: 0.25 }),
+    focusRange: 320,
+    focusRadius: 95,
+    stages: [
+      '/models/bim/bim-plant-s1.glb',
+      '/models/bim/bim-plant-s2.glb',
+      '/models/bim/bim-plant-s3.glb',
+      '/models/bim/bim-plant-s4.glb',
+    ],
+  },
+  {
+    id: 'subgrade1',
+    name: '一工区K18+400路基',
+    resolvePose: () => sampleRoutePose(0.125),
+    focusRange: 520,
+    focusRadius: 175,
+    stages: [
+      '/models/bim/bim-subgrade-s1.glb',
+      '/models/bim/bim-subgrade-s2.glb',
+      '/models/bim/bim-subgrade-s3.glb',
+      '/models/bim/bim-subgrade-s4.glb',
+    ],
+  },
+];
 
 const ROAM_GEO: Record<
   string,
@@ -99,11 +123,6 @@ const ROAM_GEO: Record<
   batchPlantA: { lon: 126.135, lat: 47.402, alt: 218, headingOver: 22, headingAlong: 24, pitchOver: -42, pitchAlong: -12, rangeOver: 13000, rangeAlong: 3000 },
   end: { lon: 126.4135, lat: 48.2372, alt: 260, headingOver: 16, headingAlong: 20, pitchOver: -40, pitchAlong: -12, rangeOver: 19000, rangeAlong: 4000 },
 };
-
-function getPointAtRatio(r: number): [number, number] {
-  const idx = Math.max(0, Math.min(ROUTE_COORDS.length - 1, Math.round(r * (ROUTE_COORDS.length - 1))));
-  return ROUTE_COORDS[idx];
-}
 
 function registerCustomMaterials(Cesium: any) {
   if (!Cesium.Material.JiheiFlowLineType) {
@@ -189,11 +208,11 @@ function registerCustomMaterials(Cesium: any) {
             float t2 = fract(t1 + 0.5);
             float ring1 = exp(-pow((dist - t1) * 14.0, 2.0)) * (1.0 - t1);
             float ring2 = exp(-pow((dist - t2) * 14.0, 2.0)) * (1.0 - t2) * 0.75;
-            float fill = smoothstep(t1 + 0.04, 0.0, dist) * (1.0 - t1) * 0.28;
-            float outerRim = smoothstep(0.94, 0.985, dist) * (1.0 - smoothstep(0.985, 1.0, dist)) * 0.45;
-            float alpha = clamp((ring1 + ring2 + fill + outerRim) * color.a, 0.0, 0.85);
+            float fill = smoothstep(t1 + 0.04, 0.0, dist) * (1.0 - t1) * 0.24;
+            float outerRim = smoothstep(0.94, 0.985, dist) * (1.0 - smoothstep(0.985, 1.0, dist)) * 0.42;
+            float alpha = clamp((ring1 + ring2 + fill + outerRim) * color.a, 0.0, 0.82);
             material.diffuse = color.rgb;
-            material.emission = color.rgb * (0.65 + (ring1 + ring2) * 0.9);
+            material.emission = color.rgb * (0.62 + (ring1 + ring2) * 0.88);
             material.alpha = alpha;
             return material;
           }
@@ -268,6 +287,7 @@ export interface CesiumCallbacks {
   onPoiClick?: (poiId: string) => void;
   onSectionClick?: (secId: string) => void;
   onDirectionClick?: (dir: 'start' | 'end') => void;
+  onAssetClick?: (asset: HighwayAssetItem) => void;
   onFallbackNotice?: (msg: string) => void;
 }
 
@@ -277,8 +297,14 @@ export class JiheiCesiumEngine {
   layers: Record<string, any> = {};
   sectionEntities: Record<string, any> = {};
   routeEntities: any[] = [];
+  highwayRoadEntities: any[] = [];
+  highwayModelEntities: any[] = [];
+  facilityEntities: any[] = [];
   bimEntities: any[] = [];
   poiEntities: any[] = [];
+  private poiRingEntities: any[] = [];
+  private poiDotEntities: any[] = [];
+  private poisLayerVisible = true;
   moduleEntities: Map<string, any[]> = new Map();
   projectedPins: Array<{ el: HTMLElement; cartesian: any }> = [];
   overlayRoot: HTMLElement | null = null;
@@ -291,6 +317,13 @@ export class JiheiCesiumEngine {
   canvasHeight = 0;
   private resizeObserver: ResizeObserver | null = null;
   private callbacks: CesiumCallbacks = {};
+  private assetHeights: Map<string, number> = new Map();
+  private bimHeights: Map<string, number> = new Map();
+  private bimOverlapHiddenIds: string[] = [];
+  private activeBimObjectId: string | null = null;
+  private bimCameraNeedsTerrainReframe = false;
+  private roadSyncUpdaters: Array<(heights: number[]) => void> = [];
+  private flowCoreEntity: any = null;
 
   setCallbacks(callbacks: CesiumCallbacks) {
     this.callbacks = callbacks;
@@ -334,10 +367,29 @@ export class JiheiCesiumEngine {
 
       if (Cesium.Terrain && Cesium.Terrain.fromWorldTerrain) {
         try {
-          viewerOpts.terrain = Cesium.Terrain.fromWorldTerrain({
+          const worldTerrain = Cesium.Terrain.fromWorldTerrain({
             requestVertexNormals: true,
             requestWaterMask: false,
           });
+          worldTerrain.errorEvent?.addEventListener(() => {
+            if (this.viewer && !(this.viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider)) {
+              this.viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+              this.assetHeights.clear();
+              this.bimHeights.clear();
+              BIM_STAGE_CONFIGS.forEach((spec) => {
+                const pose = spec.resolvePose();
+                const zeroPos = Cesium.Cartesian3.fromDegrees(pose.lon, pose.lat, 0);
+                for (let s = 0; s < 4; s++) {
+                  const ent = this.viewer?.entities.getById(`bim_${spec.id}_s${s + 1}`);
+                  if (ent) ent.position = zeroPos;
+                }
+              });
+            }
+          });
+          worldTerrain.readyEvent?.addEventListener((provider: any) => {
+            this._syncAssetTerrainHeights(Cesium, provider);
+          });
+          viewerOpts.terrain = worldTerrain;
         } catch {
           // fallback to ellipsoid
         }
@@ -451,12 +503,21 @@ export class JiheiCesiumEngine {
       if (scene.postProcessStages.bloom) scene.postProcessStages.bloom.enabled = false;
 
       const ctrl = scene.screenSpaceCameraController;
-      ctrl.minimumZoomDistance = 450;
+      ctrl.minimumZoomDistance = 80;
       ctrl.maximumZoomDistance = 320000;
 
       this._buildSectionCorridorVectors(Cesium);
       this._buildGlowingRouteVectors(Cesium);
+      this._buildHighway3DRoad(Cesium);
+      this._buildHighway3DModels(Cesium);
       this._buildBim3DModels(Cesium);
+      if (
+        this.viewer.terrainProvider &&
+        !(this.viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider) &&
+        this.viewer.terrainProvider.availability
+      ) {
+        this._syncAssetTerrainHeights(Cesium, this.viewer.terrainProvider);
+      }
       this._buildPoiVectorAnchors(Cesium);
       this._bindSceneEvents(Cesium);
 
@@ -546,7 +607,7 @@ export class JiheiCesiumEngine {
     const flatElevated: number[] = [];
     ROUTE_COORDS.forEach((p) => {
       flat.push(p[0], p[1]);
-      flatElevated.push(p[0], p[1], 300);
+      flatElevated.push(p[0], p[1], 1.5);
     });
     const positions = Cesium.Cartesian3.fromDegreesArray(flat);
     const elevatedPositions = Cesium.Cartesian3.fromDegreesArrayHeights(flatElevated);
@@ -577,6 +638,7 @@ export class JiheiCesiumEngine {
         }),
       },
     });
+    this.flowCoreEntity = flowCore;
 
     const leftFlat: number[] = [];
     const rightFlat: number[] = [];
@@ -630,75 +692,380 @@ export class JiheiCesiumEngine {
     this.routeEntities.push(glowOuter, flowCore, leftEdge, rightEdge);
   }
 
-  private _buildBim3DModels(Cesium: any) {
-    const cyanFill = Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.45);
-    const cyanWire = Cesium.Color.fromCssColorString('#38f2ff').withAlpha(0.95);
-    const goldFill = Cesium.Color.fromCssColorString('#facc15').withAlpha(0.85);
+  private _buildHighway3DRoad(Cesium: any) {
+    this.roadSyncUpdaters = [];
+    const n = ROUTE_COORDS.length;
+    const zeroHeights = new Array<number>(n).fill(0);
 
-    const b = POI_GEO.bridgeA;
-    this.bimEntities.push(
-      this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(b.lon, b.lat, 380),
-        orientation: Cesium.Transforms.headingPitchRollQuaternion(
-          Cesium.Cartesian3.fromDegrees(b.lon, b.lat, 380),
-          new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(28), 0, 0)
-        ),
-        box: { dimensions: new Cesium.Cartesian3(380, 2600, 65), material: cyanFill, outline: true, outlineColor: cyanWire },
-        show: false,
-      })
-    );
-    for (let k = -2; k <= 2; k++) {
-      this.bimEntities.push(
-        this.viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(b.lon + k * 0.0024, b.lat + k * 0.0042, 240),
-          cylinder: {
-            length: 280,
-            topRadius: 55,
-            bottomRadius: 72,
-            material: Cesium.Color.fromCssColorString('#38bdf8').withAlpha(0.55),
-            outline: true,
-            outlineColor: cyanWire,
-          },
-          show: false,
-        })
-      );
+    const offsetPoint = (i: number, offsetMeters: number): [number, number] => {
+      const cur = ROUTE_COORDS[i];
+      const prev = ROUTE_COORDS[Math.max(0, i - 1)];
+      const next = ROUTE_COORDS[Math.min(n - 1, i + 1)];
+      const cosLat = Math.cos((cur[1] * Math.PI) / 180);
+      const dE = (next[0] - prev[0]) * cosLat;
+      const dN = next[1] - prev[1];
+      const len = Math.hypot(dE, dN) || 1;
+      const nx = -dN / len;
+      const ny = dE / len;
+      const dLon = (nx * offsetMeters) / (111320 * cosLat);
+      const dLat = (ny * offsetMeters) / 110540;
+      return [cur[0] + dLon, cur[1] + dLat];
+    };
+
+    const buildRibbonHierarchy = (start: number, end: number, halfW: number, heights: number[], zAdd: number) => {
+      const flatH: number[] = [];
+      for (let i = start; i <= end; i++) {
+        const [lon, lat] = offsetPoint(i, -halfW);
+        flatH.push(lon, lat, (heights[i] ?? 0) + zAdd);
+      }
+      for (let i = end; i >= start; i--) {
+        const [lon, lat] = offsetPoint(i, halfW);
+        flatH.push(lon, lat, (heights[i] ?? 0) + zAdd);
+      }
+      return new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArrayHeights(flatH));
+    };
+
+    const buildLinePositions = (offsetMeters: number, heights: number[], zAdd: number) => {
+      const flatH: number[] = [];
+      for (let i = 0; i < n; i++) {
+        const [lon, lat] = offsetMeters === 0 ? ROUTE_COORDS[i] : offsetPoint(i, offsetMeters);
+        flatH.push(lon, lat, (heights[i] ?? 0) + zAdd);
+      }
+      return Cesium.Cartesian3.fromDegreesArrayHeights(flatH);
+    };
+
+    const closeDisplay = new Cesium.DistanceDisplayCondition(0, 35000);
+    const dashDisplay = new Cesium.DistanceDisplayCondition(0, 26000);
+
+    const chunkStep = 15;
+    for (let start = 0; start < n - 1; start += chunkStep) {
+      const end = Math.min(n - 1, start + chunkStep);
+      const isFirst = start === 0;
+      const asphaltEnt = this.viewer.entities.add({
+        ...(isFirst ? { id: 'hw_road_asphalt' } : {}),
+        name: 'G1211 双向四车道主线（26m路基）',
+        polygon: {
+          hierarchy: buildRibbonHierarchy(start, end, 13.0, zeroHeights, 0.25),
+          perPositionHeight: true,
+          material: new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString('#1e2530').withAlpha(0.95)),
+          outline: false,
+        },
+      });
+      this.highwayRoadEntities.push(asphaltEnt);
+
+      const medianEnt = this.viewer.entities.add({
+        polygon: {
+          hierarchy: buildRibbonHierarchy(start, end, 0.9, zeroHeights, 0.38),
+          perPositionHeight: true,
+          material: new Cesium.ColorMaterialProperty(Cesium.Color.fromCssColorString('#2d6a4f').withAlpha(0.96)),
+          outline: false,
+          distanceDisplayCondition: closeDisplay,
+        },
+      });
+      this.highwayRoadEntities.push(medianEnt);
+
+      this.roadSyncUpdaters.push((heights: number[]) => {
+        asphaltEnt.polygon.hierarchy = buildRibbonHierarchy(start, end, 13.0, heights, 0.25);
+        medianEnt.polygon.hierarchy = buildRibbonHierarchy(start, end, 0.9, heights, 0.38);
+      });
     }
 
-    const y = POI_GEO.beamYardA;
-    this.bimEntities.push(
-      this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(y.lon, y.lat, 260),
-        box: {
-          dimensions: new Cesium.Cartesian3(1400, 900, 45),
-          material: Cesium.Color.fromCssColorString('#0284c7').withAlpha(0.35),
-          outline: true,
-          outlineColor: cyanWire,
+    [-11.2, -1.5, 1.5, 11.2].forEach((off) => {
+      const lineEnt = this.viewer.entities.add({
+        polyline: {
+          positions: buildLinePositions(off, zeroHeights, 0.48),
+          width: 1.5,
+          clampToGround: false,
+          material: Cesium.Color.WHITE.withAlpha(0.92),
+          distanceDisplayCondition: closeDisplay,
         },
-        show: false,
-      }),
-      this.viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(y.lon, y.lat, 420),
-        box: { dimensions: new Cesium.Cartesian3(950, 120, 110), material: goldFill, outline: true, outlineColor: Cesium.Color.WHITE },
-        show: false,
-      })
-    );
+      });
+      this.highwayRoadEntities.push(lineEnt);
+      this.roadSyncUpdaters.push((heights: number[]) => {
+        lineEnt.polyline.positions = buildLinePositions(off, heights, 0.48);
+      });
+    });
 
-    const p = POI_GEO.batchPlantA;
-    [-0.0022, 0, 0.0022].forEach((dx) => {
-      this.bimEntities.push(
-        this.viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(p.lon + dx, p.lat, 340),
-          cylinder: {
-            length: 340,
-            topRadius: 95,
-            bottomRadius: 95,
-            material: Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.68),
-            outline: true,
-            outlineColor: Cesium.Color.WHITE,
+    [-6.3, 6.3].forEach((off) => {
+      const dashEnt = this.viewer.entities.add({
+        polyline: {
+          positions: buildLinePositions(off, zeroHeights, 0.48),
+          width: 1.4,
+          clampToGround: false,
+          material: new Cesium.PolylineDashMaterialProperty({
+            color: Cesium.Color.WHITE.withAlpha(0.85),
+            dashLength: 14,
+          }),
+          distanceDisplayCondition: dashDisplay,
+        },
+      });
+      this.highwayRoadEntities.push(dashEnt);
+      this.roadSyncUpdaters.push((heights: number[]) => {
+        dashEnt.polyline.positions = buildLinePositions(off, heights, 0.48);
+      });
+    });
+  }
+
+  private _buildHighway3DModels(Cesium: any) {
+    HIGHWAY_MODEL_ASSETS.forEach((asset) => {
+      if (!asset.modelUrl) return;
+      const { lon, lat, headingRad } = sampleRoutePose(asset.ratio);
+      const isBridge =
+        asset.category === 'bridge_large' ||
+        asset.category === 'bridge_medium' ||
+        asset.category === 'bridge_small';
+      const modelHeading = isBridge ? headingRad + Math.PI / 2 : headingRad;
+      const pos = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+      const orientation = Cesium.Transforms.headingPitchRollQuaternion(
+        pos,
+        new Cesium.HeadingPitchRoll(modelHeading, 0, 0)
+      );
+
+      const isIc = asset.category === 'interchange';
+      const isLg = asset.category === 'bridge_large';
+      const isMd = asset.category === 'bridge_medium';
+      const maxModelDist = isIc ? 140000 : isLg ? 110000 : 75000;
+      const maxLabelDist = isIc ? 140000 : isLg ? 80000 : 28000;
+
+      const modelEnt = this.viewer.entities.add({
+        id: 'hw_model_' + asset.id,
+        name: asset.name,
+        position: pos,
+        orientation,
+        model: {
+          uri: asset.modelUrl,
+          scale: asset.scale ?? 1.0,
+          heightReference: Cesium.HeightReference.NONE,
+          minimumPixelSize: isIc ? 22 : isLg ? 16 : 12,
+          maximumScale: isIc ? 3.5 : 3.0,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, maxModelDist),
+        },
+      });
+      modelEnt._highwayAsset = asset;
+      this.highwayModelEntities.push(modelEnt);
+
+      const pointColor = isIc
+        ? '#facc15'
+        : isLg
+          ? '#38f2ff'
+          : isMd
+            ? '#60a5fa'
+            : '#93c5fd';
+
+      const markerEnt = this.viewer.entities.add({
+        id: 'hw_marker_' + asset.id,
+        name: asset.name,
+        position: Cesium.Cartesian3.fromDegrees(lon, lat, 22),
+        point: {
+          pixelSize: isIc ? 9 : isLg ? 7 : 5.5,
+          color: Cesium.Color.fromCssColorString(pointColor),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 1.5,
+          heightReference: Cesium.HeightReference.NONE,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, maxModelDist),
+        },
+        label: {
+          text: asset.name,
+          font: '600 12px "Microsoft YaHei", sans-serif',
+          fillColor: Cesium.Color.WHITE,
+          showBackground: true,
+          backgroundColor: Cesium.Color.fromCssColorString('#081c40').withAlpha(0.78),
+          backgroundPadding: new Cesium.Cartesian2(6, 4),
+          pixelOffset: new Cesium.Cartesian2(0, -16),
+          heightReference: Cesium.HeightReference.NONE,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, maxLabelDist),
+        },
+      });
+      markerEnt._highwayAsset = asset;
+      this.highwayModelEntities.push(markerEnt);
+    });
+
+    HIGHWAY_FACILITIES.forEach((fac) => {
+      const { lon, lat } = sampleRoutePose(fac.ratio);
+      const isSvc = fac.category === 'service_area';
+      const facEnt = this.viewer.entities.add({
+        id: 'hw_fac_' + fac.id,
+        name: fac.name,
+        position: Cesium.Cartesian3.fromDegrees(lon, lat, 12),
+        point: {
+          pixelSize: 8,
+          color: Cesium.Color.fromCssColorString(isSvc ? '#34d399' : '#fb923c'),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 2,
+          heightReference: Cesium.HeightReference.NONE,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 90000),
+        },
+        label: {
+          text: fac.name,
+          font: '600 12px "Microsoft YaHei", sans-serif',
+          fillColor: Cesium.Color.fromCssColorString(isSvc ? '#a7f3d0' : '#fed7aa'),
+          showBackground: true,
+          backgroundColor: Cesium.Color.fromCssColorString('#081c40').withAlpha(0.78),
+          backgroundPadding: new Cesium.Cartesian2(6, 4),
+          pixelOffset: new Cesium.Cartesian2(0, -16),
+          heightReference: Cesium.HeightReference.NONE,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 90000),
+        },
+      });
+      facEnt._highwayAsset = fac;
+      this.facilityEntities.push(facEnt);
+    });
+  }
+
+  private _applySampledAssetPose(Cesium: any, asset: HighwayAssetItem, lon: number, lat: number, h: number) {
+    this.assetHeights.set(asset.id, h);
+    const modelEnt = this.viewer?.entities.getById('hw_model_' + asset.id);
+    if (modelEnt) {
+      modelEnt.position = Cesium.Cartesian3.fromDegrees(lon, lat, h);
+    }
+    const markerEnt = this.viewer?.entities.getById('hw_marker_' + asset.id);
+    if (markerEnt) {
+      markerEnt.position = Cesium.Cartesian3.fromDegrees(lon, lat, h + 22);
+    }
+    const facEnt = this.viewer?.entities.getById('hw_fac_' + asset.id);
+    if (facEnt) {
+      facEnt.position = Cesium.Cartesian3.fromDegrees(lon, lat, h + 12);
+    }
+  }
+
+  private _syncAssetTerrainHeights(Cesium: any, provider?: any) {
+    if (!this.viewer) return;
+    const tp = provider || this.viewer.terrainProvider;
+    if (!tp || tp instanceof Cesium.EllipsoidTerrainProvider || !tp.availability) {
+      return;
+    }
+
+    const poses = ALL_HIGHWAY_ASSETS.map((asset) => ({
+      asset,
+      pose: sampleRoutePose(asset.ratio),
+    }));
+    const poiEntries = Object.entries(POI_GEO);
+
+    const assetCartos = poses.map(({ pose }) => Cesium.Cartographic.fromDegrees(pose.lon, pose.lat));
+    const routeCartos = ROUTE_COORDS.map((p) => Cesium.Cartographic.fromDegrees(p[0], p[1]));
+    const poiCartos = poiEntries.map(([, g]) => Cesium.Cartographic.fromDegrees(g.lon, g.lat));
+    const bimPoses = BIM_STAGE_CONFIGS.map((spec) => ({ spec, pose: spec.resolvePose() }));
+    const bimCartos = bimPoses.map(({ pose }) => Cesium.Cartographic.fromDegrees(pose.lon, pose.lat));
+
+    Promise.resolve(Cesium.sampleTerrainMostDetailed(tp, [...assetCartos, ...routeCartos, ...poiCartos, ...bimCartos]))
+      .then((updated: any[]) => {
+        if (!this.viewer || !Array.isArray(updated)) return;
+        const aCount = assetCartos.length;
+        const rCount = routeCartos.length;
+        const pCount = poiCartos.length;
+
+        for (let i = 0; i < aCount; i++) {
+          const h = updated[i]?.height;
+          if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+            const { asset, pose } = poses[i];
+            this._applySampledAssetPose(Cesium, asset, pose.lon, pose.lat, h);
+          }
+        }
+
+        const routeHeights: number[] = [];
+        let lastValid = 220;
+        for (let i = 0; i < rCount; i++) {
+          const h = updated[aCount + i]?.height;
+          if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+            lastValid = h;
+            routeHeights.push(h);
+          } else {
+            routeHeights.push(lastValid);
+          }
+        }
+        this.roadSyncUpdaters.forEach((fn) => fn(routeHeights));
+
+        if (this.flowCoreEntity?.polyline) {
+          const flowFlat: number[] = [];
+          for (let i = 0; i < rCount; i++) {
+            flowFlat.push(ROUTE_COORDS[i][0], ROUTE_COORDS[i][1], routeHeights[i] + 1.5);
+          }
+          this.flowCoreEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(flowFlat);
+        }
+
+        for (let i = 0; i < poiEntries.length; i++) {
+          const [poiId, g] = poiEntries[i];
+          const h = updated[aCount + rCount + i]?.height;
+          if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+            const pos = Cesium.Cartesian3.fromDegrees(g.lon, g.lat, h + 1.0);
+            const ring = this.viewer.entities.getById('poi_ring_' + poiId);
+            const dot = this.viewer.entities.getById('poi_dot_' + poiId);
+            if (ring) {
+              ring.position = pos;
+            }
+            if (dot) dot.position = pos;
+          }
+        }
+
+        for (let i = 0; i < bimPoses.length; i++) {
+          const h = updated[aCount + rCount + pCount + i]?.height;
+          if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+            const { spec, pose } = bimPoses[i];
+            this._applySampledBimHeight(Cesium, spec.id, pose.lon, pose.lat, h);
+          }
+        }
+      })
+      .catch(() => {
+        // ignore offline terrain sampling errors
+      });
+  }
+
+  private _applySampledBimHeight(Cesium: any, objectId: string, lon: number, lat: number, h: number) {
+    this.bimHeights.set(objectId, h);
+    for (let s = 0; s < 4; s++) {
+      const ent = this.viewer?.entities.getById(`bim_${objectId}_s${s + 1}`);
+      if (ent) {
+        ent.position = Cesium.Cartesian3.fromDegrees(lon, lat, h);
+      }
+    }
+    const progressEnts = this.moduleEntities.get('progress') || [];
+    progressEnts.forEach((ent) => {
+      if (ent && ent._bimObjectId === objectId) {
+        ent.position = Cesium.Cartesian3.fromDegrees(lon, lat, h + 24);
+      }
+    });
+    if (this.activeBimObjectId === objectId && this.bimCameraNeedsTerrainReframe) {
+      this.bimCameraNeedsTerrainReframe = false;
+      this.flyToBimObject(objectId, 0.7);
+    }
+  }
+
+  private _buildBim3DModels(Cesium: any) {
+    BIM_STAGE_CONFIGS.forEach((spec) => {
+      const { lon, lat, headingRad } = spec.resolvePose();
+      const pos = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+      const orientation = Cesium.Transforms.headingPitchRollQuaternion(
+        pos,
+        new Cesium.HeadingPitchRoll(headingRad, 0, 0)
+      );
+
+      spec.stages.forEach((uri, stageIdx) => {
+        const ent = this.viewer.entities.add({
+          id: `bim_${spec.id}_s${stageIdx + 1}`,
+          name: `${spec.name} · 工序${stageIdx + 1}`,
+          position: pos,
+          orientation,
+          model: {
+            uri,
+            scale: 1.0,
+            heightReference: Cesium.HeightReference.NONE,
+            color: Cesium.Color.WHITE,
+            colorBlendMode: Cesium.ColorBlendMode.MIX,
+            colorBlendAmount: 0.0,
+            minimumPixelSize: 16,
+            maximumScale: 3.0,
           },
           show: false,
-        })
-      );
+        });
+        ent._bimObjectId = spec.id;
+        ent._bimStageIdx = stageIdx;
+        ent._lastStageState = 'neutral';
+        this.bimEntities.push(ent);
+      });
     });
   }
 
@@ -712,7 +1079,12 @@ export class JiheiCesiumEngine {
       const pulseCircle = this.viewer.entities.add({
         id: 'poi_ring_' + poiId,
         position: pos,
-        ellipse: { semiMajorAxis: 1620, semiMinorAxis: 1620, material: pulseMat, outline: false },
+        ellipse: {
+          semiMajorAxis: 1620,
+          semiMinorAxis: 1620,
+          material: pulseMat,
+          outline: false,
+        },
       });
       pulseCircle._poiId = poiId;
 
@@ -728,6 +1100,8 @@ export class JiheiCesiumEngine {
         },
       });
       coreDot._poiId = poiId;
+      this.poiRingEntities.push(pulseCircle);
+      this.poiDotEntities.push(coreDot);
       this.poiEntities.push(pulseCircle, coreDot);
     });
   }
@@ -881,14 +1255,22 @@ export class JiheiCesiumEngine {
     this.viewer.scene.postRender.addEventListener(() => {
       if (!this.renderActive) return;
       this._updateProjectedPositions();
+      this._updatePoiZoomVisibility();
     });
 
     const handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
     handler.setInputAction((movement: any) => {
       const picked = this.viewer.scene.pick(movement.position);
-      if (Cesium.defined(picked) && picked.id) {
-        if (picked.id._poiId) this.callbacks.onPoiClick?.(picked.id._poiId);
-        else if (picked.id._secId) this.callbacks.onSectionClick?.(picked.id._secId);
+      const pickedEnt = picked?.id || picked?.primitive?.id;
+      if (Cesium.defined(picked) && pickedEnt) {
+        if (pickedEnt._highwayAsset) {
+          this.flyToHighwayAsset(pickedEnt._highwayAsset.id);
+          this.callbacks.onAssetClick?.(pickedEnt._highwayAsset);
+        } else if (pickedEnt._poiId) {
+          this.callbacks.onPoiClick?.(pickedEnt._poiId);
+        } else if (pickedEnt._secId) {
+          this.callbacks.onSectionClick?.(pickedEnt._secId);
+        }
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -918,6 +1300,7 @@ export class JiheiCesiumEngine {
     satellite?: boolean;
     uav?: boolean;
     bim?: boolean;
+    models?: boolean;
     pois?: boolean;
     sections?: boolean;
     route?: boolean;
@@ -958,9 +1341,31 @@ export class JiheiCesiumEngine {
     });
 
     this.routeEntities.forEach((e) => { e.show = opts.route !== false; });
+    const showModels = opts.models !== false;
+    this.highwayRoadEntities.forEach((e) => { e.show = showModels; });
+    this.highwayModelEntities.forEach((e) => {
+      e.show = showModels && !this.bimOverlapHiddenIds.includes(e.id);
+    });
     const showBim = designMode || !!opts.bim;
     this.bimEntities.forEach((e) => { e.show = showBim; });
-    this.poiEntities.forEach((e) => { e.show = opts.pois !== false; });
+    this.poisLayerVisible = opts.pois !== false;
+    this._updatePoiZoomVisibility();
+    this.facilityEntities.forEach((e) => { e.show = opts.pois !== false; });
+  }
+
+  private _updatePoiZoomVisibility() {
+    if (!this.viewer) return;
+    const camH = this.viewer.camera?.positionCartographic?.height ?? 62000;
+    const showRings = this.poisLayerVisible && camH >= 8000;
+    const showDots = this.poisLayerVisible && camH >= 2000;
+    for (let i = 0; i < this.poiRingEntities.length; i++) {
+      const ent = this.poiRingEntities[i];
+      if (ent.show !== showRings) ent.show = showRings;
+    }
+    for (let i = 0; i < this.poiDotEntities.length; i++) {
+      const ent = this.poiDotEntities[i];
+      if (ent.show !== showDots) ent.show = showDots;
+    }
   }
 
   setOverviewImmediate() {
@@ -996,6 +1401,238 @@ export class JiheiCesiumEngine {
       offset: new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24), Cesium.Math.toRadians(-34), 28000),
       duration: 1.4,
     });
+  }
+
+  getBimObjectPose(objectId: string): { lon: number; lat: number; alt: number; headingRad: number } {
+    const spec = BIM_STAGE_CONFIGS.find((s) => s.id === objectId) ?? BIM_STAGE_CONFIGS[0];
+    const pose = spec.resolvePose();
+    const h = this.bimHeights.get(spec.id) ?? 0;
+    return { lon: pose.lon, lat: pose.lat, alt: h, headingRad: pose.headingRad };
+  }
+
+  updateBimSimulation(activeObjectId: string, stageStates: Array<'done' | 'doing' | 'todo'>) {
+    const Cesium = window.Cesium;
+    if (!this.ready || !Cesium) return;
+    this.activeBimObjectId = activeObjectId;
+
+    const spec = BIM_STAGE_CONFIGS.find((s) => s.id === activeObjectId);
+    const nextHidden: string[] = [];
+    if (spec?.overlapAssetId) {
+      nextHidden.push(`hw_model_${spec.overlapAssetId}`, `hw_marker_${spec.overlapAssetId}`);
+    }
+    if (
+      nextHidden.length !== this.bimOverlapHiddenIds.length ||
+      nextHidden.some((id, idx) => this.bimOverlapHiddenIds[idx] !== id)
+    ) {
+      this.bimOverlapHiddenIds = nextHidden;
+      this.highwayModelEntities.forEach((e) => {
+        if (e.id?.startsWith('hw_model_') || e.id?.startsWith('hw_marker_')) {
+          e.show = !this.bimOverlapHiddenIds.includes(e.id);
+        }
+      });
+    }
+
+    // Use opaque alpha=1.0 for done/doing so Cesium renders solid stages with full depth write (no X-ray bleed-through)
+    const doneColor = Cesium.Color.fromCssColorString('#1e90ff');
+    const doingColor = Cesium.Color.fromCssColorString('#f59e0b');
+    const todoColor = Cesium.Color.fromCssColorString('#94a3b8').withAlpha(0.30);
+
+    this.bimEntities.forEach((ent) => {
+      if (!ent?.model) return;
+      if (ent._bimObjectId !== activeObjectId) {
+        if (ent._lastStageState !== 'neutral') {
+          ent._lastStageState = 'neutral';
+          ent.model.color = Cesium.Color.WHITE;
+          ent.model.colorBlendAmount = 0.0;
+        }
+        return;
+      }
+
+      const stageIdx = typeof ent._bimStageIdx === 'number' ? ent._bimStageIdx : 0;
+      const st = stageStates[stageIdx] ?? 'todo';
+      if (ent._lastStageState === st) return;
+      ent._lastStageState = st;
+      ent.model.colorBlendMode = Cesium.ColorBlendMode.MIX;
+      if (st === 'done') {
+        ent.model.color = doneColor;
+        ent.model.colorBlendAmount = 0.58;
+      } else if (st === 'doing') {
+        ent.model.color = doingColor;
+        ent.model.colorBlendAmount = 0.78;
+      } else {
+        ent.model.color = todoColor;
+        ent.model.colorBlendAmount = 0.85;
+      }
+    });
+  }
+
+  resetBimSimulation() {
+    const Cesium = window.Cesium;
+    if (!this.ready || !Cesium) return;
+    this.activeBimObjectId = null;
+    this.bimCameraNeedsTerrainReframe = false;
+    this.bimOverlapHiddenIds = [];
+    this.bimEntities.forEach((ent) => {
+      if (ent?.model && ent._lastStageState !== 'neutral') {
+        ent._lastStageState = 'neutral';
+        ent.model.color = Cesium.Color.WHITE;
+        ent.model.colorBlendAmount = 0.0;
+      }
+    });
+    this.highwayModelEntities.forEach((e) => {
+      e.show = true;
+    });
+  }
+
+  flyToBimObject(objectId: string, duration = 1.25) {
+    const Cesium = window.Cesium;
+    if (!this.ready || !Cesium) return;
+    const spec = BIM_STAGE_CONFIGS.find((s) => s.id === objectId) ?? BIM_STAGE_CONFIGS[0];
+    this.orbitActive = false;
+    const { lon, lat, headingRad } = spec.resolvePose();
+
+    const doFly = (alt: number) => {
+      if (!this.viewer) return;
+      const target = Cesium.Cartesian3.fromDegrees(lon, lat, alt + 8);
+      this.viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(target, spec.focusRadius), {
+        offset: new Cesium.HeadingPitchRange(headingRad + Math.PI / 4, Cesium.Math.toRadians(-30), spec.focusRange),
+        duration,
+      });
+    };
+
+    const sampled = this.bimHeights.get(spec.id);
+    if (typeof sampled === 'number' && Number.isFinite(sampled)) {
+      this.bimCameraNeedsTerrainReframe = false;
+      doFly(sampled);
+      return;
+    }
+
+    const tp = this.viewer.terrainProvider;
+
+    if (!tp || tp instanceof Cesium.EllipsoidTerrainProvider) {
+      this.bimCameraNeedsTerrainReframe = false;
+      doFly(0);
+      return;
+    }
+
+    if (!tp.availability) {
+      this.bimCameraNeedsTerrainReframe = true;
+      doFly(0);
+      return;
+    }
+
+    let settled = false;
+    const fallbackTimer = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      this.bimCameraNeedsTerrainReframe = true;
+      doFly(0);
+    }, 1000);
+
+    Promise.resolve(Cesium.sampleTerrainMostDetailed(tp, [Cesium.Cartographic.fromDegrees(lon, lat)]))
+      .then((res: any[]) => {
+        const h = res?.[0]?.height;
+        const valid = typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000;
+        if (!settled) {
+          settled = true;
+          window.clearTimeout(fallbackTimer);
+          if (valid) {
+            this.bimCameraNeedsTerrainReframe = false;
+            this._applySampledBimHeight(Cesium, spec.id, lon, lat, h);
+            doFly(h);
+          } else {
+            this.bimCameraNeedsTerrainReframe = true;
+            doFly(0);
+          }
+        } else if (valid) {
+          this._applySampledBimHeight(Cesium, spec.id, lon, lat, h);
+        }
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        this.bimCameraNeedsTerrainReframe = true;
+        doFly(0);
+      });
+  }
+
+  flyToHighwayAsset(assetId: string) {
+    const Cesium = window.Cesium;
+    if (!this.ready || !Cesium) return;
+    const asset = ALL_HIGHWAY_ASSETS.find((a) => a.id === assetId);
+    if (!asset) return;
+    this.orbitActive = false;
+    const { lon, lat, headingRad } = sampleRoutePose(asset.ratio);
+
+    const doFly = (alt: number) => {
+      if (!this.viewer) return;
+      const target = Cesium.Cartesian3.fromDegrees(lon, lat, alt + 10);
+      const radius =
+        asset.category === 'interchange'
+          ? 220
+          : asset.category === 'bridge_large'
+            ? 160
+            : asset.category === 'bridge_medium'
+              ? 80
+              : 45;
+      const range =
+        asset.category === 'interchange'
+          ? 720
+          : asset.category === 'bridge_large'
+            ? 520
+            : asset.category === 'bridge_medium'
+              ? 360
+              : asset.category === 'bridge_small'
+                ? 240
+                : 480;
+      this.viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(target, radius), {
+        offset: new Cesium.HeadingPitchRange(headingRad + Math.PI / 4, Cesium.Math.toRadians(-32), range),
+        duration: 1.3,
+      });
+    };
+
+    const sampled = this.assetHeights.get(asset.id);
+    if (typeof sampled === 'number' && Number.isFinite(sampled)) {
+      doFly(sampled);
+      return;
+    }
+
+    const rawH = this.viewer.scene.globe?.getHeight(Cesium.Cartographic.fromDegrees(lon, lat));
+    const saneRawH = typeof rawH === 'number' && Number.isFinite(rawH) && rawH >= -100 && rawH <= 5000 ? rawH : undefined;
+    const tp = this.viewer.terrainProvider;
+
+    if (!tp || tp instanceof Cesium.EllipsoidTerrainProvider || !tp.availability) {
+      doFly(saneRawH ?? 0);
+      return;
+    }
+
+    let settled = false;
+    const fallbackTimer = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      doFly(saneRawH ?? 0);
+    }, 1000);
+
+    Promise.resolve(Cesium.sampleTerrainMostDetailed(tp, [Cesium.Cartographic.fromDegrees(lon, lat)]))
+      .then((res: any[]) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        const h = res?.[0]?.height;
+        if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+          this._applySampledAssetPose(Cesium, asset, lon, lat, h);
+          doFly(h);
+        } else {
+          doFly(saneRawH ?? 0);
+        }
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        doFly(saneRawH ?? 0);
+      });
   }
 
   flyToPoi(poiId: string) {

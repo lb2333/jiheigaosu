@@ -53,13 +53,6 @@ const FALLBACK_BIM_OBJECTS: M02BimObject[] = [
   },
 ];
 
-const BIM_POI_COORDS: Record<string, { lon: number; lat: number; alt: number }> = {
-  bridgeA: { lon: 125.882, lat: 47.465, alt: 460 },
-  beamYardA: { lon: 125.91, lat: 47.49, alt: 420 },
-  batchPlantA: { lon: 125.868, lat: 47.442, alt: 430 },
-  subgrade1: { lon: 125.838, lat: 47.345, alt: 380 },
-};
-
 function dateToMs(s: string) {
   return new Date(`${s}T00:00:00Z`).getTime();
 }
@@ -93,13 +86,6 @@ function getTaskStateAtDate(task: M02BimTask, simDate: string): 'done' | 'doing'
   return 'todo';
 }
 
-interface SavedBimStyle {
-  boxMat: unknown;
-  boxOut: unknown;
-  cylMat: unknown;
-  cylOut: unknown;
-}
-
 export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -131,7 +117,6 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
   const [forceDesignBase, setForceDesignBase] = useState<boolean | null>(null);
   const [planModalOpen, setPlanModalOpen] = useState<boolean>(false);
 
-  const savedStylesRef = useRef<SavedBimStyle[] | null>(null);
   const lastCesiumSigRef = useRef<string>('');
   const lastTrackedObjRef = useRef<string>('');
   const lastPoiRef = useRef<string>(selectedPoiId);
@@ -252,7 +237,7 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
     return () => window.clearInterval(timer);
   }, [playing, speed, showToast, persistBimState, simObj.id, activeTask.id]);
 
-  // Sync Cesium layers, overlays, tracked stage beacon, and dynamic BIM entity recoloring
+  // Sync Cesium layers, overlays, tracked stage pin, and 4D staged GLB model coloring
   useEffect(() => {
     const engine = getGlobalCesiumEngine();
     if (!cesiumReady || !engine.ready) return;
@@ -265,6 +250,7 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
         satellite: false,
         uav: !useDesign,
         bim: true,
+        models: true,
         pois: true,
         sections: true,
         route: true,
@@ -284,82 +270,43 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
       });
     }
 
-    if (!flewOnInitRef.current) {
-      flewOnInitRef.current = true;
-      engine.flyToPoi(simObj.poiId);
-    }
+    const stageStates = simObj.tasks.map((t) => getTaskStateAtDate(t, simDate));
+    engine.updateBimSimulation(simObj.id, stageStates);
 
-    // Track a dedicated BIM stage beacon entity via engine.trackModuleEntity('progress', ...)
     const Cesium = window.Cesium;
-    if (Cesium) {
-      if (lastTrackedObjRef.current !== simObj.id) {
-        lastTrackedObjRef.current = simObj.id;
-        engine.clearModuleEntities('progress');
-        const coords = BIM_POI_COORDS[simObj.id] ?? BIM_POI_COORDS.bridgeA;
-        const beacon = engine.trackModuleEntity('progress', {
-          position: Cesium.Cartesian3.fromDegrees(coords.lon, coords.lat, coords.alt + 140),
-          ellipse: {
-            semiMajorAxis: 780,
-            semiMinorAxis: 780,
-            height: 180,
-            material: Cesium.Color.fromCssColorString(useDesign ? '#38f2ff' : '#facc15').withAlpha(0.22),
-            outline: true,
-            outlineColor: Cesium.Color.fromCssColorString('#38f2ff').withAlpha(0.85),
-          },
-        });
-        if (beacon) {
-          beacon._poiId = simObj.poiId;
-        }
+    if (Cesium && lastTrackedObjRef.current !== simObj.id) {
+      lastTrackedObjRef.current = simObj.id;
+      engine.clearModuleEntities('progress');
+      const pose = engine.getBimObjectPose(simObj.id);
+      const pin = engine.trackModuleEntity('progress', {
+        position: Cesium.Cartesian3.fromDegrees(pose.lon, pose.lat, pose.alt + 24),
+        point: {
+          pixelSize: 9,
+          color: Cesium.Color.fromCssColorString(useDesign ? '#38f2ff' : '#facc15'),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: {
+          text: `${simObj.name} · 4D模拟`,
+          font: '600 12px "Microsoft YaHei", sans-serif',
+          fillColor: Cesium.Color.WHITE,
+          showBackground: true,
+          backgroundColor: Cesium.Color.fromCssColorString('#081c40').withAlpha(0.84),
+          backgroundPadding: new Cesium.Cartesian2(7, 4),
+          pixelOffset: new Cesium.Cartesian2(0, -18),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      if (pin) {
+        pin._poiId = simObj.poiId;
+        pin._bimObjectId = simObj.id;
       }
-
-      // Save original bimEntities materials once before recoloring
-      if (!savedStylesRef.current && engine.bimEntities?.length) {
-        savedStylesRef.current = engine.bimEntities.map((ent) => ({
-          boxMat: ent.box ? ent.box.material : null,
-          boxOut: ent.box ? ent.box.outlineColor : null,
-          cylMat: ent.cylinder ? ent.cylinder.material : null,
-          cylOut: ent.cylinder ? ent.cylinder.outlineColor : null,
-        }));
-      }
-
-      // Dynamically recolor Cesium 3D BIM entities according to task states at simDate
-      if (engine.bimEntities?.length) {
-        const doneFill = Cesium.Color.fromCssColorString('#1b88ff').withAlpha(0.72);
-        const doneOut = Cesium.Color.fromCssColorString('#38f2ff');
-        const doingFill = Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.84);
-        const doingOut = Cesium.Color.fromCssColorString('#fde047');
-        const todoFill = Cesium.Color.fromCssColorString('#64748b').withAlpha(0.45);
-        const todoOut = Cesium.Color.fromCssColorString('#cbd5e1');
-
-        const t2State = getTaskStateAtDate(simObj.tasks[1], simDate);
-        const t3State = getTaskStateAtDate(simObj.tasks[2], simDate);
-        const t4State = getTaskStateAtDate(simObj.tasks[3], simDate);
-
-        const pickStyle = (st: 'done' | 'doing' | 'todo') =>
-          st === 'done'
-            ? [doneFill, doneOut]
-            : st === 'doing'
-              ? [doingFill, doingOut]
-              : [todoFill, todoOut];
-
-        engine.bimEntities.forEach((ent, idx) => {
-          let st: 'done' | 'doing' | 'todo' = t4State;
-          if (idx >= 1 && idx <= 5) st = idx <= 3 ? t2State : t3State;
-          else if (idx === 0) st = t4State;
-          else if (idx === 6 || idx === 8 || idx === 9) st = t3State;
-          else st = t4State;
-
-          const [fill, out] = pickStyle(st);
-          if (ent.box) {
-            ent.box.material = fill;
-            ent.box.outlineColor = out;
-          }
-          if (ent.cylinder) {
-            ent.cylinder.material = fill;
-            ent.cylinder.outlineColor = out;
-          }
-        });
-      }
+      flewOnInitRef.current = true;
+      engine.flyToBimObject(simObj.id);
+    } else if (!flewOnInitRef.current) {
+      flewOnInitRef.current = true;
+      engine.flyToBimObject(simObj.id);
     }
   }, [cesiumReady, isSchemeB, forceDesignBase, simObj, simDate]);
 
@@ -368,26 +315,13 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
     return () => {
       const engine = getGlobalCesiumEngine();
       engine.clearModuleEntities('progress');
-      if (engine.ready && savedStylesRef.current && engine.bimEntities) {
-        engine.bimEntities.forEach((ent, i) => {
-          const st = savedStylesRef.current?.[i];
-          if (!st) return;
-          if (ent.box && st.boxMat) {
-            ent.box.material = st.boxMat;
-            ent.box.outlineColor = st.boxOut;
-          }
-          if (ent.cylinder && st.cylMat) {
-            ent.cylinder.material = st.cylMat;
-            ent.cylinder.outlineColor = st.cylOut;
-          }
-        });
-        savedStylesRef.current = null;
-      }
       if (engine.ready) {
+        engine.resetBimSimulation();
         engine.applyLayers({
           satellite: false,
           uav: true,
           bim: false,
+          models: true,
           pois: true,
           sections: true,
           route: true,
@@ -614,7 +548,7 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
                   setBimSecId(obj.sectionId);
                   setSelectedTaskId(obj.tasks[3]?.id || obj.tasks[0]?.id);
                   const engine = getGlobalCesiumEngine();
-                  if (engine.ready) engine.flyToPoi(obj.poiId);
+                  if (engine.ready) engine.flyToBimObject(obj.id);
                 }
               }}
             >
@@ -776,7 +710,7 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
             className="link-subtle"
             onClick={() => {
               const engine = getGlobalCesiumEngine();
-              if (engine.ready) engine.flyToPoi(simObj.poiId);
+              if (engine.ready) engine.flyToBimObject(simObj.id);
               showToast(`三维视角已飞抵：${simObj.name}（${simObj.sectionName}）`);
             }}
           >
@@ -917,7 +851,7 @@ export function BimSimSubpage({ isSchemeB }: { isSchemeB: boolean }) {
                 setProgress(89.8);
                 setForceDesignBase(null);
                 const engine = getGlobalCesiumEngine();
-                if (engine.ready) engine.flyToPoi(simObj.poiId);
+                if (engine.ready) engine.flyToBimObject(simObj.id);
                 void persistBimState(simObj.id, 89.8, activeTask.id);
                 showToast('已重置 BIM 进度模拟视角与日期');
               }}

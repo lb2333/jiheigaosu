@@ -5,7 +5,7 @@
   "description": "G1211吉黑高速明水至北安段工程建设项目综合管理平台（Next.js 16 + CesiumJS + PostgreSQL + Better Auth + AI SDK）",
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build && node scripts/prepare-standalone.mjs",
+    "build": "next build --webpack && node scripts/prepare-standalone.mjs",
     "start": "node --env-file=.env.local .next/standalone/server.js",
     "start:next": "next start --port 3000",
     "typecheck": "tsc --noEmit",

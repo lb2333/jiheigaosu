@@ -1128,14 +1128,18 @@ html, body {
 .layer-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 7px 16px;
+  gap: 11px;
+  padding: 7px 14px;
   border-radius: 10px;
   background: rgba(8, 28, 64, 0.86);
   border: 1px solid var(--border-cyan);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow-panel);
+  max-width: calc(100vw - 560px);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.layer-bar::-webkit-scrollbar { display: none; }
 
 .layer-toggle-item {
   display: flex;

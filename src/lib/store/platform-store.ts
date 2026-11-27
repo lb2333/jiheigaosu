@@ -17,6 +17,7 @@ export interface P1LayersState {
   satellite: boolean;
   uav: boolean;
   bim: boolean;
+  models: boolean;
   pois: boolean;
   sections: boolean;
   route: boolean;
@@ -78,6 +79,7 @@ export const usePlatformStore = create<PlatformStoreState>((set, get) => ({
     satellite: false,
     uav: true,
     bim: false,
+    models: true,
     pois: true,
     sections: true,
     route: true,
@@ -164,6 +166,7 @@ export const usePlatformStore = create<PlatformStoreState>((set, get) => ({
         satellite: false,
         uav: true,
         bim: false,
+        models: true,
         pois: true,
         sections: true,
         route: true,
