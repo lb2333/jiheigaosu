@@ -18,7 +18,12 @@ import { auth } from '@/lib/auth';
 import { seedM02 } from '@/modules/m02_progress/seed';
 import { seedM03 } from '@/modules/m03_quality/seed';
 import { seedM04 } from '@/modules/m04_safety/seed';
+import { seedM05 } from '@/modules/m05_staff/seed';
+import { seedM06 } from '@/modules/m06_machine/seed';
+import { seedM07 } from '@/modules/m07_material/seed';
 import { seedM08 } from '@/modules/m08_measure/seed';
+import { seedM09 } from '@/modules/m09_uav/seed';
+import { seedM10 } from '@/modules/m10_video/seed';
 
 function loadEnvLocal() {
   try {
@@ -615,6 +620,13 @@ async function seed() {
   await seedM03(db);
   await seedM04(db);
   await seedM08(db);
+
+  console.log('[seed] 开始初始化 Phase 3 领域表数据 (m05, m06, m07, m09, m10)...');
+  await seedM05(db);
+  await seedM06(db);
+  await seedM07(db);
+  await seedM09(db);
+  await seedM10(db);
 
   console.log('[seed] 全量初始化完成！');
 }

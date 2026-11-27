@@ -35,9 +35,9 @@
 ## 3. 核心底座与迁移双轨机制
 
 1. **持久化 CesiumJS 底座**：`public/lib/cesium/`（18.77MB 本地内核）+ `src/lib/cesium/engine.ts` + `src/components/cesium/CesiumBackdrop.tsx` 挂载于 `src/app/(platform)/layout.tsx`，跨 64 个子路由不卸载 WebGL，按路由 `cesiumMode`（`interactive | dimmed | opaque`）自动暂停/恢复渲染循环。
-2. **Strangler Fig 桥接层**：`src/components/legacy/LegacyModuleHost.tsx` 注入 `window.JIHEI_PLATFORM` 垫片，按需加载剩余 9 个未原生化模块（`m05`–`m07`、`m09`–`m14`）的 `public/legacy/js/modules/*.js` 并同步工区、日期、弹窗、Toast 与路由跳转；已完成原生化的模块脚本已清理删除。
+2. **Strangler Fig 桥接层**：`src/components/legacy/LegacyModuleHost.tsx` 注入 `window.JIHEI_PLATFORM` 垫片，按需加载剩余 4 个未原生化模块（`m11`–`m14`）的 `public/legacy/js/modules/*.js` 并同步工区、日期、弹窗、Toast 与路由跳转；已完成原生化的模块脚本已清理删除。
 3. **共享 UI 组件库**：`src/components/ui/`（`GlassPanel`、`KpiCard`、`StatusBadge`、`DataTable`、`SplitImageCompare`、`SparklineDonut`、`DonutSvg`）。
-4. **模块总表（`src/lib/modules/registry.ts` — 已原生 7 模块 / 33 页，双轨运行 9 模块 / 31 页）**：
+4. **模块总表（`src/lib/modules/registry.ts` — 已原生 12 模块 / 51 页，双轨运行 4 模块 / 13 页）**：
 
 | 状态 | 模块 | 路由前缀 | 子页数 | 后端 API & Schema / 说明 |
 |---|---|---|---|---|
@@ -45,15 +45,20 @@
 | ✅ 原生全栈 | `2. 进度管理` | `/progress/*` | 5 页 | `src/modules/m02_progress/` + `/api/v1/m02/*` (`overview`, `reports`, `plan`, `bim`) + `src/db/schema/domains/m02.ts`（含 Cesium BIM 实体追踪） |
 | ✅ 原生全栈 | `3. 质量管理` | `/quality/*` | 6 页 | `src/modules/m03_quality/` + `/api/v1/m03/*` (`overview`, `lab`, `mixing`, `pavement`, `beam-yard`, `issues`) + `src/db/schema/domains/m03.ts` |
 | ✅ 原生全栈 | `4. 安全管理` | `/safety/*` | 5 页 | `src/modules/m04_safety/` + `/api/v1/m04/*` (`overview`, `risks`, `ai-alerts`, `hazards`) + `src/db/schema/domains/m04.ts`（含 Cesium 12 处风险点追踪） |
+| ✅ 原生全栈 | `5. 人员管理` | `/staff/*` | 2 页 | `src/modules/m05_staff/` + `/api/v1/m05/*` (`org`, `staff/[id]`, `attendance`, `roles/[code]`, `anomalies/[id]`) + `src/db/schema/domains/m05.ts`（含 Cesium 组织驻地标注追踪） |
+| ✅ 原生全栈 | `6. 机械管理` | `/machine/*` | 2 页 | `src/modules/m06_machine/` + `/api/v1/m06/*` (`equipment`, `equipment/[code]`, `key-archives`, `key-archives/[code]`, `patrols`, `reminder-config`) + `src/db/schema/domains/m06.ts`（含 Cesium 机械点位追踪） |
+| ✅ 原生全栈 | `7. 全周期备料管理` | `/material/*` | 4 页 | `src/modules/m07_material/` + `/api/v1/m07/*` (`overview`, `reports`, `reports/[code]`, `yard`, `batches`, `batches/[batchId]`) + `src/db/schema/domains/m07.ts`（含 Cesium 料场点位追踪） |
 | ✅ 原生全栈 | `8. 计量管理` | `/measure/*` | 4 页 | `src/modules/m08_measure/` + `/api/v1/m08/*` (`overview`, `sections`, `physical-compare`, `records`) + `src/db/schema/domains/m08.ts` |
+| ✅ 原生全栈 | `9. 无人机巡检` | `/uav/*` | 6 页 | `src/modules/m09_uav/` + `/api/v1/m09/*` (`overview`, `tasks`, `routes`, `live`, `hazards`, `reports`) + `src/db/schema/domains/m09.ts`（含 Cesium 机巢/航线实体追踪及确认隐患推送 `m04`） |
+| ✅ 原生全栈 | `10. 视频监控` | `/video/*` | 4 页 | `src/modules/m10_video/` + `/api/v1/m10/*` (`cameras`, `patrol-groups`, `playback`, `airground`) + `src/db/schema/domains/m10.ts` |
 | ✅ 原生全栈 | `15. 系统管理` | `/system/*` | 6 页 | `src/modules/m15-system/` + Better Auth RBAC + PostgreSQL 审计日志 |
 | ✅ 原生全栈 | `16. AI助手` | `/ai/*` | 3 页 | `src/modules/m16-ai/` + AI SDK 流式对话/查库工具/会话落库 |
-| 🔄 双轨运行 | `5.~7., 9.~14. 业务模块` | `/staff/*` 等 9 模块 | 31 页 | `public/legacy/js/modules/m05~m07, m09~m14` 经 `LegacyModuleHost` 运行，待 Phase 3~4 分批原生化 |
+| 🔄 双轨运行 | `11.~14. 专题业务模块` | `/speed/*`、`/pingan/*`、`/publish/*`、`/blacksoil/*` | 13 页 | `public/legacy/js/modules/m11~m14` 经 `LegacyModuleHost` 运行，待 Phase 4 原生化 |
 
 ---
 
 ## 4. Phase 2 ~ 4 并行重构批次规划（`/teamwork`）
 
 - ✅ **Phase 2（批次 A · 核心建管 4 模块 / 20 页，已完成原生全栈重构）**：`m02_progress`（5 页）、`m03_quality`（6 页）、`m04_safety`（5 页）、`m08_measure`（4 页），已接入 Better Auth 会话鉴权、PostgreSQL 领域表（`src/db/schema/domains/m02.ts`~`m08.ts`）及 `pnpm db:seed` 幂等初始化，通过 `pnpm typecheck`、`pnpm build` 与 `pnpm smoke:next` 64/64 巡检。
-- **Phase 3（批次 B · 人机料与监测 5 模块 / 18 页）**：`m05-staff`、`m06-machine`、`m07-material`、`m09-uav`、`m10-video`
+- ✅ **Phase 3（批次 B · 人机料与监测 5 模块 / 18 页，已完成原生全栈重构）**：`m05_staff`（2 页）、`m06_machine`（2 页）、`m07_material`（4 页）、`m09_uav`（6 页）、`m10_video`（4 页），已接入 Better Auth 会话鉴权与 RBAC、PostgreSQL 领域表（`src/db/schema/domains/m05.ts`~`m10.ts`）及 `pnpm db:seed` 幂等初始化，通过 `pnpm typecheck`、`pnpm build`（standalone）、`pnpm smoke:next` 64/64 巡检与 `/api/v1/m05`~`m10` 鉴权校验。
 - **Phase 4（批次 C · 特色专题与收口 4 模块 / 13 页）**：`m11-speed`、`m12-pingan`、`m13-publish`、`m14-blacksoil`，全部转 `'native'` 后删除 `LegacyModuleHost` 与 `public/legacy/`。

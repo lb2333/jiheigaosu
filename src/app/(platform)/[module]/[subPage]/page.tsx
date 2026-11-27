@@ -4,7 +4,12 @@ import { HomeModule } from '@/modules/m01-home/HomeModule';
 import { ProgressModule } from '@/modules/m02_progress/ProgressModule';
 import { QualityModule } from '@/modules/m03_quality/QualityModule';
 import { SafetyModule } from '@/modules/m04_safety/SafetyModule';
+import { StaffModule } from '@/modules/m05_staff/StaffModule';
+import { MachineModule } from '@/modules/m06_machine/MachineModule';
+import { MaterialModule } from '@/modules/m07_material/MaterialModule';
 import { MeasureModule } from '@/modules/m08_measure/MeasureModule';
+import { UavModule } from '@/modules/m09_uav/UavModule';
+import { VideoModule } from '@/modules/m10_video/VideoModule';
 import { SystemModule } from '@/modules/m15-system/SystemModule';
 import { AiWorkbenchModule } from '@/modules/m16-ai/AiWorkbenchModule';
 import { LegacyModuleHost } from '@/components/legacy/LegacyModuleHost';
@@ -34,8 +39,23 @@ export default async function ModuleSubPage({
   if (mod.id === 'safety') {
     return <SafetyModule subPageId={sub.id} />;
   }
+  if (mod.id === 'staff') {
+    return <StaffModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'machine') {
+    return <MachineModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'material') {
+    return <MaterialModule subPageId={sub.id} />;
+  }
   if (mod.id === 'measure') {
     return <MeasureModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'uav') {
+    return <UavModule subPageId={sub.id} />;
+  }
+  if (mod.id === 'video') {
+    return <VideoModule subPageId={sub.id} />;
   }
   if (mod.id === 'system') {
     return <SystemModule subPageId={sub.id} />;

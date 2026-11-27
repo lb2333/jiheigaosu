@@ -90,14 +90,13 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'uav',
     name: '无人机巡检',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m09_uav.js',
     subPages: [
       { id: 'overview', name: '巡检总览', cesiumMode: 'interactive' },
       { id: 'tasks', name: '巡检任务', cesiumMode: 'opaque' },
       { id: 'routes', name: '航线规划', cesiumMode: 'interactive' },
-      { id: 'live', name: '实时巡检', cesiumMode: 'interactive' },
+      { id: 'live', name: '实时巡检', cesiumMode: 'opaque' },
       { id: 'hazards', name: '隐患识别', cesiumMode: 'opaque' },
       { id: 'reports', name: '巡检报告', cesiumMode: 'opaque' },
     ],
@@ -105,9 +104,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'video',
     name: '视频监控',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m10_video.js',
     subPages: [
       { id: 'directory', name: '设备目录', cesiumMode: 'opaque' },
       { id: 'patrol', name: '视频巡查', cesiumMode: 'opaque' },
@@ -118,9 +116,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'staff',
     name: '人员管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m05_staff.js',
     subPages: [
       { id: 'org', name: '组织与人员', cesiumMode: 'opaque' },
       { id: 'attendance', name: '岗位与考勤', cesiumMode: 'opaque' },
@@ -129,9 +126,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'machine',
     name: '机械管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m06_machine.js',
     subPages: [
       { id: 'equipment', name: '机械设备', cesiumMode: 'opaque' },
       { id: 'keyArchive', name: '重点机械档案', cesiumMode: 'opaque' },
@@ -140,9 +136,8 @@ export const MODULE_REGISTRY: ModuleDef[] = [
   {
     id: 'material',
     name: '全周期备料管理',
-    mode: 'legacy',
+    mode: 'native',
     showInTopNav: true,
-    legacyScript: '/legacy/js/modules/m07_material.js',
     subPages: [
       { id: 'overview', name: '备料总览', cesiumMode: 'opaque' },
       { id: 'report', name: '报表管理', cesiumMode: 'opaque' },
