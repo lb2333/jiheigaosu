@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable';
+import { useApiQuery } from '@/lib/hooks/useApiQuery';
 import { usePlatformStore } from '@/lib/store/platform-store';
 import type { M02DetailItem, M02OverviewResponse } from '../types';
 import { M02Icon } from './M02Icon';
@@ -39,8 +40,6 @@ export function OverviewSubpage() {
   const [chartMode, setChartMode] = useState<'period' | 'cum'>('period');
   const [page, setPage] = useState<number>(1);
   const [showAll, setShowAll] = useState<boolean>(false);
-  const [data, setData] = useState<M02OverviewResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [detailRow, setDetailRow] = useState<M02DetailItem | null>(null);
 
   // Hide redundant top-right section pills on overview (inline pills handle it)
@@ -51,29 +50,18 @@ export function OverviewSubpage() {
     };
   }, []);
 
-  const fetchOverview = useCallback(async () => {
-    setLoading(true);
-    try {
-      const qs = new URLSearchParams({
-        sectionId: activeSectionId ?? 'all',
-        category,
-        month,
-        page: String(page),
-        pageSize: showAll ? 'all' : '6',
-      });
-      const res = await fetch(`/api/v1/m02/overview?${qs.toString()}`);
-      if (res.ok) {
-        const json = (await res.json()) as M02OverviewResponse;
-        setData(json);
-      }
-    } finally {
-      setLoading(false);
-    }
+  const overviewUrl = useMemo(() => {
+    const qs = new URLSearchParams({
+      sectionId: activeSectionId ?? 'all',
+      category,
+      month,
+      page: String(page),
+      pageSize: showAll ? 'all' : '6',
+    });
+    return `/api/v1/m02/overview?${qs.toString()}`;
   }, [activeSectionId, category, month, page, showAll]);
 
-  useEffect(() => {
-    fetchOverview();
-  }, [fetchOverview]);
+  const { data, loading } = useApiQuery<M02OverviewResponse>(overviewUrl, { staleTimeMs: 15_000 });
 
   const sections = data?.sections ?? [
     { id: 'sec1', name: '一工区' },

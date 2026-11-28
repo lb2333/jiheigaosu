@@ -6,6 +6,9 @@ const connectionString =
   process.env.DATABASE_URL ??
   'postgresql://postgres:jihei_pg_2026@127.0.0.1:5432/jihei_highway';
 
+const parsedMax = Number.parseInt(process.env.PG_POOL_MAX ?? '', 10);
+const poolMax = Number.isFinite(parsedMax) && parsedMax > 0 ? Math.min(parsedMax, 100) : 15;
+
 const globalForDb = globalThis as unknown as {
   __jiheiPgPool?: Pool;
 };
@@ -14,7 +17,7 @@ export const pool =
   globalForDb.__jiheiPgPool ??
   new Pool({
     connectionString,
-    max: 10,
+    max: poolMax,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
   });

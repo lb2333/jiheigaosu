@@ -381,7 +381,7 @@ export function AiWorkbenchModule({ subPageId }: { subPageId: string }) {
                 key={sv.id}
                 className="rounded-xl overflow-hidden border border-sky-400/30 bg-[#092350]/75"
               >
-                <img src={sv.img} alt={sv.title} className="w-full h-24 object-cover" />
+                <img src={sv.img} alt={sv.title} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
                 <div className="p-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <strong className="text-xs text-white">{sv.title}</strong>

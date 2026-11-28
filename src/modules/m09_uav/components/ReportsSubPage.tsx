@@ -20,12 +20,12 @@ import {
   type UavReportDTO,
   type UavTaskDTO,
 } from '../types';
+import { A4ReportSheet } from './A4ReportSheet';
 import {
-  A4ReportSheet,
   NewReportDraftModal,
   ReportCompareModal,
   ReportPdfModal,
-} from './UavModals';
+} from './UavModalsLazy';
 
 interface ReportsResponse {
   reports: UavReportDTO[];
@@ -550,6 +550,8 @@ export function ReportsSubPage({
                       <img
                         src="/assets/milestone_before.jpg"
                         alt="原巡检"
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: '100%',
                           height: '78px',
@@ -590,6 +592,8 @@ export function ReportsSubPage({
                       <img
                         src="/assets/milestone_after.jpg"
                         alt="复查取证"
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: '100%',
                           height: '78px',

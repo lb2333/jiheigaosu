@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+系统界面示意图
+dist-release
+legacy-archive
+*.tar.gz
+*.zip
+*.log
+tsconfig.tsbuildinfo

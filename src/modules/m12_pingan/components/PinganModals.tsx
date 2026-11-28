@@ -560,6 +560,8 @@ export function MediaDetailModal({
           <img
             src={slide.imgPath}
             alt={slide.title}
+            loading="lazy"
+            decoding="async"
             style={{
               width: '100%',
               maxHeight: '320px',

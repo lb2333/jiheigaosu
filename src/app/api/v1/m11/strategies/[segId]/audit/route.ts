@@ -65,116 +65,121 @@ export async function POST(
     },
   ];
 
-  const [updatedStrategy] = await db
-    .update(speedStrategies)
-    .set({
-      auditStatus: '已审核',
-      publishedInner: innerSpeed,
-      publishedOuter: outerSpeed,
-      publishedStrategyId: existing.latestStrategyId,
-      publishedBatchId: newBatchId,
-      publishedAt: full,
-      vmsMessage,
-      auditHistory: nextHistory,
-      updatedAt: new Date(),
-    })
-    .where(eq(speedStrategies.segId, segId))
-    .returning();
+  const { updatedStrategy, newBatch } = await db.transaction(async (tx) => {
+    const [strategyRow] = await tx
+      .update(speedStrategies)
+      .set({
+        auditStatus: '已审核',
+        publishedInner: innerSpeed,
+        publishedOuter: outerSpeed,
+        publishedStrategyId: existing.latestStrategyId,
+        publishedBatchId: newBatchId,
+        publishedAt: full,
+        vmsMessage,
+        auditHistory: nextHistory,
+        updatedAt: new Date(),
+      })
+      .where(eq(speedStrategies.segId, segId))
+      .returning();
 
-  const devices: SpeedFeedbackDevice[] = [
-    {
-      id: `VSL-${prefix}-01`,
-      type: '可变限速标志',
-      name: '内侧可变限速标志',
-      cmd: `${innerSpeed} km/h`,
-      receipt: `确认显示 ${innerSpeed} km/h`,
-      time: hms,
-      exceptionTime: '—',
-      status: '回执成功',
-      logs: [
-        `${hms}.120 [TX] 帧头=0xAA55 设备=VSL-${prefix}-01 指令=LIMIT_${innerSpeed}`,
-        `${hms}.840 [RX] ACK_OK 当前牌面=${innerSpeed} km/h 亮度=自动(6级)`,
-      ],
-    },
-    {
-      id: `VSL-${prefix}-02`,
-      type: '可变限速标志',
-      name: '外侧可变限速标志',
-      cmd: `${outerSpeed} km/h`,
-      receipt: `确认显示 ${outerSpeed} km/h`,
-      time: hms,
-      exceptionTime: '—',
-      status: '回执成功',
-      logs: [
-        `${hms}.135 [TX] 帧头=0xAA55 设备=VSL-${prefix}-02 指令=LIMIT_${outerSpeed}`,
-        `${hms}.910 [RX] ACK_OK 当前牌面=${outerSpeed} km/h 亮度=自动(6级)`,
-      ],
-    },
-    {
-      id: `QB-${prefix}-01`,
-      type: '情报板',
-      name: '前方情报板',
-      cmd: vmsMessage,
-      receipt: '显示内容与指令一致',
-      time: hms,
-      exceptionTime: '—',
-      status: '回执成功',
-      logs: [
-        `${hms}.180 [TX] TCP_PUSH 设备=QB-${prefix}-01 文本="${vmsMessage}"`,
-        `${hms}.980 [RX] DISPLAY_VERIFIED MD5校验一致`,
-      ],
-    },
-    {
-      id: `QB-${prefix}-02`,
-      type: '情报板',
-      name: '上游情报板',
-      cmd: vmsMessage,
-      receipt: '显示内容与指令一致',
-      time: hms,
-      exceptionTime: '—',
-      status: '回执成功',
-      logs: [
-        `${hms}.210 [TX] TCP_PUSH 设备=QB-${prefix}-02 文本="${vmsMessage}"`,
-        `${hms}.995 [RX] DISPLAY_VERIFIED MD5校验一致`,
-      ],
-    },
-  ];
+    const devices: SpeedFeedbackDevice[] = [
+      {
+        id: `VSL-${prefix}-01`,
+        type: '可变限速标志',
+        name: '内侧可变限速标志',
+        cmd: `${innerSpeed} km/h`,
+        receipt: `确认显示 ${innerSpeed} km/h`,
+        time: hms,
+        exceptionTime: '—',
+        status: '回执成功',
+        logs: [
+          `${hms}.120 [TX] 帧头=0xAA55 设备=VSL-${prefix}-01 指令=LIMIT_${innerSpeed}`,
+          `${hms}.840 [RX] ACK_OK 当前牌面=${innerSpeed} km/h 亮度=自动(6级)`,
+        ],
+      },
+      {
+        id: `VSL-${prefix}-02`,
+        type: '可变限速标志',
+        name: '外侧可变限速标志',
+        cmd: `${outerSpeed} km/h`,
+        receipt: `确认显示 ${outerSpeed} km/h`,
+        time: hms,
+        exceptionTime: '—',
+        status: '回执成功',
+        logs: [
+          `${hms}.135 [TX] 帧头=0xAA55 设备=VSL-${prefix}-02 指令=LIMIT_${outerSpeed}`,
+          `${hms}.910 [RX] ACK_OK 当前牌面=${outerSpeed} km/h 亮度=自动(6级)`,
+        ],
+      },
+      {
+        id: `QB-${prefix}-01`,
+        type: '情报板',
+        name: '前方情报板',
+        cmd: vmsMessage,
+        receipt: '显示内容与指令一致',
+        time: hms,
+        exceptionTime: '—',
+        status: '回执成功',
+        logs: [
+          `${hms}.180 [TX] TCP_PUSH 设备=QB-${prefix}-01 文本="${vmsMessage}"`,
+          `${hms}.980 [RX] DISPLAY_VERIFIED MD5校验一致`,
+        ],
+      },
+      {
+        id: `QB-${prefix}-02`,
+        type: '情报板',
+        name: '上游情报板',
+        cmd: vmsMessage,
+        receipt: '显示内容与指令一致',
+        time: hms,
+        exceptionTime: '—',
+        status: '回执成功',
+        logs: [
+          `${hms}.210 [TX] TCP_PUSH 设备=QB-${prefix}-02 文本="${vmsMessage}"`,
+          `${hms}.995 [RX] DISPLAY_VERIFIED MD5校验一致`,
+        ],
+      },
+    ];
 
-  const [newBatch] = await db
-    .insert(speedFeedbackBatches)
-    .values({
-      batchId: newBatchId,
-      segId: existing.segId,
-      segName: existing.segName,
-      directionLabel,
-      strategyId: existing.latestStrategyId,
-      strategyAuthLabel: '人工审核授权',
-      strategyTimeDesc: `${hms} 内侧${innerSpeed} / 外侧${outerSpeed} km/h`,
-      publishState: '已下发',
-      publishTime: full,
-      publishShortDesc: `${hms} 区段限速与情报板指令`,
-      confirmDurationSec: 4,
-      sameBatchSummary: [
-        { label: '内侧标志', text: `确认 ${innerSpeed} km/h · ${hms}` },
-        { label: '外侧标志', text: `确认 ${outerSpeed} km/h · ${hms}` },
-      ],
-      devices,
-      sortOrder: 0,
-    })
-    .returning();
+    const [batchRow] = await tx
+      .insert(speedFeedbackBatches)
+      .values({
+        batchId: newBatchId,
+        segId: existing.segId,
+        segName: existing.segName,
+        directionLabel,
+        strategyId: existing.latestStrategyId,
+        strategyAuthLabel: '人工审核授权',
+        strategyTimeDesc: `${hms} 内侧${innerSpeed} / 外侧${outerSpeed} km/h`,
+        publishState: '已下发',
+        publishTime: full,
+        publishShortDesc: `${hms} 区段限速与情报板指令`,
+        confirmDurationSec: 4,
+        sameBatchSummary: [
+          { label: '内侧标志', text: `确认 ${innerSpeed} km/h · ${hms}` },
+          { label: '外侧标志', text: `确认 ${outerSpeed} km/h · ${hms}` },
+        ],
+        devices,
+        sortOrder: 0,
+      })
+      .returning();
 
-  await recordSpeedAudit({
-    session,
-    action: 'audit_and_dispatch_speed_strategy',
-    target: segId,
-    detail: {
-      strategyId: existing.latestStrategyId,
-      batchId: newBatchId,
-      innerSpeed,
-      outerSpeed,
-      vmsMessage,
-    },
-    req,
+    await recordSpeedAudit({
+      session,
+      action: 'audit_and_dispatch_speed_strategy',
+      target: segId,
+      detail: {
+        strategyId: existing.latestStrategyId,
+        batchId: newBatchId,
+        innerSpeed,
+        outerSpeed,
+        vmsMessage,
+      },
+      req,
+      executor: tx,
+    });
+
+    return { updatedStrategy: strategyRow, newBatch: batchRow };
   });
 
   return NextResponse.json({

@@ -4,7 +4,8 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import { DonutSvg } from '@/components/ui/SparklineDonut';
-import { StatusBadge, type BadgeTone } from '@/components/ui/StatusBadge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { statusToBadgeTone } from './components/shared';
 import { fmtMoney } from './MeasureCharts';
 import type {
   MeasureContract,
@@ -12,12 +13,7 @@ import type {
   PhysicalCompareItem,
 } from './types';
 
-export function statusToBadgeTone(st: string): BadgeTone {
-  if (st === '已确认' || st === '已支付' || st === '已回传') return 'ok';
-  if (st === '审核中' || st === '办理中') return 'info';
-  if (st === '待审核' || st === '待支付') return 'warn';
-  return 'muted';
-}
+export { statusToBadgeTone };
 
 export type ActiveModalState =
   | { type: 'originalSystem'; record: MeasureRecord | null }

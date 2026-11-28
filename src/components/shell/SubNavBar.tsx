@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Calendar, Search, Settings } from 'lucide-react';
@@ -22,8 +23,13 @@ export function SubNavBar() {
   const setSelectedDate = usePlatformStore((s) => s.setSelectedDate);
   const cesiumMode = usePlatformStore((s) => s.cesiumMode);
   const setCmdkOpen = usePlatformStore((s) => s.setCmdkOpen);
-  const openModalHtml = usePlatformStore((s) => s.openModalHtml);
+  const openModal = usePlatformStore((s) => s.openModal);
   const showToast = usePlatformStore((s) => s.showToast);
+  const hydrateSession = usePlatformStore((s) => s.hydrateSession);
+
+  useEffect(() => {
+    hydrateSession();
+  }, [hydrateSession]);
 
   function handleSectionClick(secId: string) {
     const next = toggleSectionId(secId);
@@ -51,21 +57,28 @@ export function SubNavBar() {
   function handlePlatformInfoModal() {
     const nativeCount = MODULE_REGISTRY.filter((m) => m.mode === 'native').length;
     const totalPages = MODULE_REGISTRY.reduce((sum, m) => sum + m.subPages.length, 0);
-    openModalHtml(
-      '系统平台 · Next.js 全栈原生架构状态',
-      `
-        <p style="color:#dbeafe;line-height:1.7;">当前平台已全面升级为 <strong>Next.js 16 + PostgreSQL 16 + Better Auth RBAC + Vercel AI SDK</strong> 原生全栈架构，全量覆盖 <strong>${MODULE_REGISTRY.length} 个业务模块 / ${totalPages} 个页面</strong>。</p>
-        <div class="detail-grid">
-          <div class="detail-stat-card"><span>原生 React 全栈模块</span><strong>${nativeCount} / ${MODULE_REGISTRY.length} 个模块（100% 原生化）</strong></div>
-          <div class="detail-stat-card"><span>持久化三维底座</span><strong>CesiumJS 跨 ${totalPages} 页共享引擎</strong></div>
-          <div class="detail-stat-card"><span>统计基准日期</span><strong>${selectedDate}</strong></div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid rgba(56,189,248,0.2);">
-          <span style="font-size:12px;color:#93c5fd;">支持一键清理本地偏好缓存并重置全线总览视图</span>
-          <button type="button" class="dock-btn primary" data-reset-demo="1">一键重置演示状态</button>
-        </div>
-      `
-    );
+    openModal('系统平台 · Next.js 全栈原生架构状态', [
+      {
+        type: 'paragraph',
+        text: `当前平台已全面升级为 Next.js 16 + PostgreSQL 16 + Better Auth RBAC + Vercel AI SDK 原生全栈架构，全量覆盖 ${MODULE_REGISTRY.length} 个业务模块 / ${totalPages} 个页面。`,
+      },
+      {
+        type: 'stats',
+        items: [
+          {
+            label: '原生 React 全栈模块',
+            value: `${nativeCount} / ${MODULE_REGISTRY.length} 个模块（100% 原生化）`,
+          },
+          { label: '持久化三维底座', value: `CesiumJS 跨 ${totalPages} 页共享引擎` },
+          { label: '统计基准日期', value: selectedDate },
+        ],
+      },
+      {
+        type: 'resetDemoFooter',
+        hint: '支持一键清理本地偏好缓存并重置全线总览视图',
+        buttonLabel: '一键重置演示状态',
+      },
+    ]);
   }
 
   return (
@@ -121,7 +134,8 @@ export function SubNavBar() {
         </button>
 
         <button type="button" className="demo-badge" id="demoInfoBtn" onClick={handlePlatformInfoModal}>
-          全栈数据
+          <span className="demo-live-dot" aria-hidden="true" />
+          <span>全栈数据</span>
         </button>
 
         <div

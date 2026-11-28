@@ -1,59 +1,40 @@
-import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { like } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { auditLogs } from '@/db/schema/core';
 import { speedFeedbackBatches } from '@/db/schema/domains/m11';
+import {
+  WRITE_ROLES,
+  type AuthSession,
+  formatNowLabels as formatSharedNowLabels,
+  requireSession,
+  requireWriteSession as requireSharedWriteSession,
+} from '@/lib/api/auth-guard';
+import { type AuditExecutor, writeAuditLog } from '@/lib/api/audit';
 
-export const WRITE_ROLES = new Set(['admin', 'engineer', 'supervisor']);
-
-export async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    };
-  }
-  return { session, errorResponse: null };
-}
+export { WRITE_ROLES, requireSession };
 
 export async function requireWriteSession() {
-  const { session, errorResponse } = await requireSession();
-  if (errorResponse || !session) return { session: null, errorResponse };
-  const role = session.user.role ?? 'viewer';
-  if (!WRITE_ROLES.has(role)) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json(
-        { error: '权限不足：仅管理员、工程师或监理可执行智慧提速策略审核与指令下发操作' },
-        { status: 403 }
-      ),
-    };
-  }
-  return { session, errorResponse: null };
+  return requireSharedWriteSession(
+    '权限不足：仅管理员、工程师或监理可执行智慧提速策略审核与指令下发操作'
+  );
 }
 
 export async function recordSpeedAudit(params: {
-  session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+  session: AuthSession;
   action: string;
   target: string;
   detail?: Record<string, unknown>;
   req?: NextRequest;
+  executor?: AuditExecutor;
 }) {
-  const ip =
-    params.req?.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    params.req?.headers.get('x-real-ip') ||
-    '127.0.0.1';
-  await db.insert(auditLogs).values({
-    userId: params.session.user.id,
-    userName: params.session.user.name || params.session.user.email || 'unknown',
-    action: params.action,
+  await writeAuditLog({
     moduleId: 'speed',
+    action: params.action,
     target: params.target,
-    detail: params.detail ?? {},
-    ipAddress: ip,
+    detail: params.detail,
+    req: params.req,
+    session: params.session,
+    executor: params.executor,
   });
 }
 
@@ -63,18 +44,12 @@ export function formatNowLabels(): {
   hm: string;
   date: string;
 } {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mi = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
+  const now = formatSharedNowLabels();
   return {
-    full: `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`,
-    hms: `${hh}:${mi}:${ss}`,
-    hm: `${hh}:${mi}`,
-    date: `${yyyy}-${mm}-${dd}`,
+    full: now.full,
+    hms: now.hms,
+    hm: now.hm,
+    date: now.date,
   };
 }
 

@@ -496,6 +496,8 @@ export function RiskSubPage({
                 className="m04-map-bg"
                 src={IMG_PATHS.corridor}
                 alt="吉黑高速风险点位分布走廊"
+                loading="lazy"
+                decoding="async"
               />
               <svg
                 viewBox="0 0 100 100"
@@ -688,6 +690,8 @@ export function RiskSubPage({
                 <img
                   src={IMG_PATHS[selRisk.imgKey] || IMG_PATHS.corridor}
                   alt={selRisk.name}
+                  loading="lazy"
+                  decoding="async"
                 />
                 <button className="media-center-play" type="button" title="播放现场监控">
                   <Play size={16} fill="currentColor" />

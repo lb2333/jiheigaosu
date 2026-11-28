@@ -41,6 +41,8 @@ export function SplitImageCompare({
         <img
           src={afterSrc}
           alt="后期建设影像"
+          loading="lazy"
+          decoding="async"
           style={{ filter: afterFilter, transform: `scale(${zoom})` }}
         />
       </div>
@@ -52,6 +54,8 @@ export function SplitImageCompare({
         <img
           src={beforeSrc}
           alt="前期建设影像"
+          loading="lazy"
+          decoding="async"
           style={{ filter: beforeFilter, transform: `scale(${zoom})` }}
         />
       </div>

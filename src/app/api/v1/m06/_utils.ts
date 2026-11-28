@@ -1,43 +1,26 @@
-import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { eq } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { auditLogs } from '@/db/schema/core';
 import { machineReminderConfig } from '@/db/schema/domains/m06';
 import {
   DEFAULT_REMINDER_CONFIG,
   type ReminderConfigDTO,
   type ReminderDateField,
 } from '@/modules/m06_machine/types';
+import {
+  WRITE_ROLES,
+  formatNowLabels,
+  requireSession,
+  requireWriteSession as requireSharedWriteSession,
+} from '@/lib/api/auth-guard';
+import { writeAuditLog } from '@/lib/api/audit';
 
-export const WRITE_ROLES = new Set(['admin', 'engineer', 'supervisor']);
-
-export async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    };
-  }
-  return { session, errorResponse: null };
-}
+export { WRITE_ROLES, requireSession };
 
 export async function requireWriteSession() {
-  const { session, errorResponse } = await requireSession();
-  if (errorResponse || !session) return { session: null, errorResponse };
-  const role = session.user.role ?? 'viewer';
-  if (!WRITE_ROLES.has(role)) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json(
-        { error: '权限不足：仅管理员、工程师或监理可执行机械设备变更操作' },
-        { status: 403 }
-      ),
-    };
-  }
-  return { session, errorResponse: null };
+  return requireSharedWriteSession(
+    '权限不足：仅管理员、工程师或监理可执行机械设备变更操作'
+  );
 }
 
 export async function recordAuditLog(opts: {
@@ -48,14 +31,14 @@ export async function recordAuditLog(opts: {
   target: string;
   detail: Record<string, unknown>;
 }) {
-  await db.insert(auditLogs).values({
-    userId: opts.userId,
-    userName: opts.userName,
-    action: opts.action,
+  await writeAuditLog({
     moduleId: 'machine',
+    action: opts.action,
     target: opts.target,
     detail: opts.detail,
-    ipAddress: opts.req.headers.get('x-forwarded-for') ?? '127.0.0.1',
+    req: opts.req,
+    userId: opts.userId,
+    userName: opts.userName,
   });
 }
 
@@ -79,14 +62,9 @@ export async function getReminderConfig(): Promise<ReminderConfigDTO> {
 }
 
 export function formatPatrolNowLabel(): { dateCompact: string; shortTime: string } {
-  const now = new Date();
-  const yyyy = String(now.getFullYear());
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mi = String(now.getMinutes()).padStart(2, '0');
+  const now = formatNowLabels();
   return {
-    dateCompact: `${yyyy}${mm}${dd}`,
-    shortTime: `${mm}-${dd} ${hh}:${mi}`,
+    dateCompact: now.dateCompact,
+    shortTime: now.short,
   };
 }

@@ -22,7 +22,7 @@ import {
 } from '../types';
 import { LedBoardPreview } from './LedBoardPreview';
 import { Pager } from './Pager';
-import { AddTemplateModal } from './PublishModals';
+import { AddTemplateModal } from './PublishModalsLazy';
 
 interface TemplatesResponse {
   templates: PublishTemplateDTO[];

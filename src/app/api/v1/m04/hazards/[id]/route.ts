@@ -109,20 +109,24 @@ export async function PATCH(
     actIcon = 'refresh';
   }
 
-  const [updated] = await db
-    .update(safetyHazards)
-    .set(updateFields)
-    .where(eq(safetyHazards.id, id))
-    .returning();
+  const updated = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(safetyHazards)
+      .set(updateFields)
+      .where(eq(safetyHazards.id, id))
+      .returning();
 
-  await db.insert(safetyActivities).values({
-    title: `${sName} · ${existing.description}`,
-    timeLabel: short,
-    code: existing.id,
-    status: actStatus,
-    tagClass: actTag,
-    sectionId: existing.sectionId,
-    icon: actIcon,
+    await tx.insert(safetyActivities).values({
+      title: `${sName} · ${existing.description}`,
+      timeLabel: short,
+      code: existing.id,
+      status: actStatus,
+      tagClass: actTag,
+      sectionId: existing.sectionId,
+      icon: actIcon,
+    });
+
+    return row;
   });
 
   return NextResponse.json({ hazard: updated });

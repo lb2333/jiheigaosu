@@ -25,7 +25,7 @@ import {
   ClueLocateMapModal,
   LinkDuplicateModal,
   LinkedSafetyLedgerModal,
-} from './UavModals';
+} from './UavModalsLazy';
 
 interface HazardsResponse {
   clues: UavClueDTO[];
@@ -496,6 +496,8 @@ export function HazardsSubPage({
                   <img
                     src={imgUrl}
                     alt={selClue.title}
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       width: '100%',
                       height: '100%',
@@ -602,6 +604,8 @@ export function HazardsSubPage({
                       <img
                         src={imgUrl}
                         alt="原始影像"
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: '100%',
                           height: '52px',
@@ -619,6 +623,8 @@ export function HazardsSubPage({
                       <img
                         src={imgUrl}
                         alt="AI标注影像"
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: '100%',
                           height: '52px',

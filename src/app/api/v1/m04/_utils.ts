@@ -1,37 +1,18 @@
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
 import { like } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { safetyHazards } from '@/db/schema/domains/m04';
+import {
+  formatNowLabels,
+  requireSession,
+  requireWriteSession as requireSharedWriteSession,
+} from '@/lib/api/auth-guard';
 
-const WRITE_ROLES = new Set(['admin', 'engineer', 'supervisor']);
-
-export async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    };
-  }
-  return { session, errorResponse: null };
-}
+export { requireSession };
 
 export async function requireWriteSession() {
-  const { session, errorResponse } = await requireSession();
-  if (errorResponse || !session) return { session: null, errorResponse };
-  const role = session.user.role ?? 'viewer';
-  if (!WRITE_ROLES.has(role)) {
-    return {
-      session: null,
-      errorResponse: NextResponse.json(
-        { error: '权限不足：仅管理员、工程师或监理可执行安全台账变更操作' },
-        { status: 403 }
-      ),
-    };
-  }
-  return { session, errorResponse: null };
+  return requireSharedWriteSession(
+    '权限不足：仅管理员、工程师或监理可执行安全台账变更操作'
+  );
 }
 
 export async function generateNextHazardId(period: string): Promise<string> {
@@ -54,13 +35,6 @@ export async function generateNextHazardId(period: string): Promise<string> {
 }
 
 export function formatNowLabel(): { full: string; short: string } {
-  const now = new Date();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mi = String(now.getMinutes()).padStart(2, '0');
-  return {
-    full: `${now.getFullYear()}-${mm}-${dd} ${hh}:${mi}`,
-    short: `${mm}-${dd} ${hh}:${mi}`,
-  };
+  const now = formatNowLabels();
+  return { full: now.fullMinute, short: now.short };
 }

@@ -419,6 +419,8 @@ export function ScreenshotModal({
             src={imgSrc}
             style={{ width: '100%', display: 'block' }}
             alt="取证截图"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div style={{ padding: '40px', textAlign: 'center', color: '#8cb2db' }}>

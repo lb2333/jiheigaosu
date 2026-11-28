@@ -66,7 +66,7 @@
   align-items: center;
   gap: 6px;
   box-shadow: 0 0 14px rgba(22, 119, 255, 0.45);
-  transition: all 0.18s ease;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
 }
 
 .m03-btn-query:hover {
@@ -396,7 +396,7 @@
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.16s;
+  transition: color 0.16s, background-color 0.16s, border-color 0.16s, transform 0.16s, opacity 0.16s, box-shadow 0.16s;
 }
 
 .m03-qpill:hover {
@@ -518,7 +518,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 
 .m03-page-btn:hover:not(:disabled) {
@@ -569,7 +569,7 @@
   background: rgba(13, 44, 96, 0.56);
   border: 1px solid rgba(56, 189, 248, 0.24);
   cursor: pointer;
-  transition: all 0.18s;
+  transition: color 0.18s, background-color 0.18s, border-color 0.18s, transform 0.18s, opacity 0.18s, box-shadow 0.18s;
 }
 
 .m03-side-card:hover {

@@ -103,25 +103,124 @@ const BIM_STAGE_CONFIGS: BimStageSpec[] = [
   },
 ];
 
-const ROAM_GEO: Record<
-  string,
-  {
-    lon: number;
-    lat: number;
-    alt: number;
-    headingOver: number;
-    headingAlong: number;
-    pitchOver: number;
-    pitchAlong: number;
-    rangeOver: number;
-    rangeAlong: number;
+interface RoamGeoSpec {
+  lon: number;
+  lat: number;
+  alt: number;
+  headingOver: number;
+  headingAlong: number;
+  pitchOver: number;
+  pitchAlong: number;
+  rangeOver: number;
+  rangeAlong: number;
+  radiusOver: number;
+  radiusAlong: number;
+  assetId?: string;
+  bimId?: string;
+}
+
+function buildAssetRoamSpec(
+  assetId: string,
+  kind: 'interchange' | 'bridge' | 'facility'
+): RoamGeoSpec {
+  const asset = ALL_HIGHWAY_ASSETS.find((a) => a.id === assetId);
+  const ratio = asset?.ratio ?? 0.2;
+  const pose = sampleRoutePose(ratio);
+  const headingDeg = (pose.headingRad * 180) / Math.PI;
+  if (kind === 'interchange') {
+    return {
+      lon: pose.lon,
+      lat: pose.lat,
+      alt: 225,
+      headingOver: headingDeg + 38,
+      headingAlong: headingDeg + 14,
+      pitchOver: -36,
+      pitchAlong: -18,
+      rangeOver: 1120,
+      rangeAlong: 680,
+      radiusOver: 190,
+      radiusAlong: 130,
+      assetId,
+    };
   }
-> = {
-  start: { lon: 125.8202, lat: 47.2916, alt: 215, headingOver: 22, headingAlong: 34, pitchOver: -42, pitchAlong: -12, rangeOver: 18000, rangeAlong: 3600 },
-  bridgeA: { lon: 125.982, lat: 47.452, alt: 235, headingOver: 20, headingAlong: 20, pitchOver: -40, pitchAlong: -11, rangeOver: 15000, rangeAlong: 3200 },
-  beamYardA: { lon: 126.115, lat: 47.508, alt: 220, headingOver: 16, headingAlong: 18, pitchOver: -42, pitchAlong: -12, rangeOver: 13000, rangeAlong: 3000 },
-  batchPlantA: { lon: 126.135, lat: 47.402, alt: 218, headingOver: 22, headingAlong: 24, pitchOver: -42, pitchAlong: -12, rangeOver: 13000, rangeAlong: 3000 },
-  end: { lon: 126.4135, lat: 48.2372, alt: 260, headingOver: 16, headingAlong: 20, pitchOver: -40, pitchAlong: -12, rangeOver: 19000, rangeAlong: 4000 },
+  if (kind === 'bridge') {
+    return {
+      lon: pose.lon,
+      lat: pose.lat,
+      alt: 230,
+      headingOver: headingDeg + 42,
+      headingAlong: headingDeg + 15,
+      pitchOver: -34,
+      pitchAlong: -18,
+      rangeOver: 820,
+      rangeAlong: 520,
+      radiusOver: 145,
+      radiusAlong: 100,
+      assetId,
+    };
+  }
+  return {
+    lon: pose.lon,
+    lat: pose.lat,
+    alt: 225,
+    headingOver: headingDeg + 35,
+    headingAlong: headingDeg + 12,
+    pitchOver: -35,
+    pitchAlong: -18,
+    rangeOver: 880,
+    rangeAlong: 560,
+    radiusOver: 150,
+    radiusAlong: 105,
+    assetId,
+  };
+}
+
+const ROAM_GEO: Record<string, RoamGeoSpec> = {
+  ic_mingshui: buildAssetRoamSpec('ic_mingshui', 'interchange'),
+  start: buildAssetRoamSpec('ic_mingshui', 'interchange'),
+  br_l1: buildAssetRoamSpec('br_l1', 'bridge'),
+  batchPlantA: {
+    lon: POI_GEO.batchPlantA.lon,
+    lat: POI_GEO.batchPlantA.lat,
+    alt: POI_GEO.batchPlantA.alt,
+    headingOver: 34,
+    headingAlong: 18,
+    pitchOver: -34,
+    pitchAlong: -18,
+    rangeOver: 760,
+    rangeAlong: 480,
+    radiusOver: 120,
+    radiusAlong: 85,
+    bimId: 'batchPlantA',
+  },
+  bridgeA: {
+    ...buildAssetRoamSpec('br_l2', 'bridge'),
+    bimId: 'bridgeA',
+  },
+  beamYardA: {
+    lon: POI_GEO.beamYardA.lon,
+    lat: POI_GEO.beamYardA.lat,
+    alt: POI_GEO.beamYardA.alt,
+    headingOver: 30,
+    headingAlong: 16,
+    pitchOver: -34,
+    pitchAlong: -18,
+    rangeOver: 820,
+    rangeAlong: 520,
+    radiusOver: 130,
+    radiusAlong: 90,
+    bimId: 'beamYardA',
+  },
+  fac_svc_1: buildAssetRoamSpec('fac_svc_1', 'facility'),
+  ic_tongda: buildAssetRoamSpec('ic_tongda', 'interchange'),
+  br_l3: buildAssetRoamSpec('br_l3', 'bridge'),
+  br_l4: buildAssetRoamSpec('br_l4', 'bridge'),
+  ic_baiquan: buildAssetRoamSpec('ic_baiquan', 'interchange'),
+  br_l5: buildAssetRoamSpec('br_l5', 'bridge'),
+  br_l6: buildAssetRoamSpec('br_l6', 'bridge'),
+  br_l7: buildAssetRoamSpec('br_l7', 'bridge'),
+  ic_jianhua: buildAssetRoamSpec('ic_jianhua', 'interchange'),
+  end: buildAssetRoamSpec('ic_jianhua', 'interchange'),
 };
 
 function registerCustomMaterials(Cesium: any) {
@@ -132,25 +231,68 @@ function registerCustomMaterials(Cesium: any) {
       fabric: {
         type: FlowType,
         uniforms: {
-          color: new Cesium.Color(0.22, 0.95, 1.0, 1.0),
-          headColor: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-          speed: 1.6,
-          repeat: 10.0,
+          color: new Cesium.Color(0.22, 0.74, 0.97, 1.0),
+          headColor: new Cesium.Color(0.88, 0.98, 1.0, 1.0),
+          speed: 0.7,
+          repeat: 48.0,
+          direction: 1.0,
+          baseAlpha: 0.1,
+          opacity: 1.0,
+          mode: 1.0,
         },
         source: `
+          float jiheiSdSeg(vec2 p, vec2 a, vec2 b) {
+            vec2 pa = p - a;
+            vec2 ba = b - a;
+            float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+            return length(pa - ba * h);
+          }
+
           czm_material czm_getMaterial(czm_materialInput materialInput) {
             czm_material material = czm_getDefaultMaterial(materialInput);
             vec2 st = materialInput.st;
-            float time = czm_frameNumber * 0.012 * speed;
-            float pos = fract(st.s * repeat - time);
-            float tail = smoothstep(0.0, 0.78, pos) * (1.0 - smoothstep(0.78, 0.99, pos));
-            float core = exp(-abs(st.t - 0.5) * 10.0);
-            float baseLine = exp(-abs(st.t - 0.5) * 6.5) * 0.38;
-            float intensity = clamp(baseLine + tail * core * 0.85, 0.0, 0.92);
-            vec3 col = mix(color.rgb, headColor.rgb, smoothstep(0.62, 0.94, pos) * core * 0.65);
+            float time = czm_frameNumber * 0.01 * speed;
+            float dir = direction >= 0.0 ? 1.0 : -1.0;
+            float sCont = st.s * repeat * dir - time;
+            float pos = fract(sCont);
+
+            float intensity = 0.0;
+            float highlight = 0.0;
+
+            if (mode > 0.5) {
+              // Option B: Crisp screen-space-consistent double-chevron (») without zoom stretching
+              float ds = length(vec2(dFdx(sCont), dFdy(sCont)));
+              float dt = length(vec2(dFdx(st.t), dFdy(st.t)));
+              float pxPerCell = clamp(1.0 / max(ds, 1e-5), 18.0, 260.0);
+              float pxPerWidth = clamp(1.0 / max(dt, 1e-5), 5.0, 12.0);
+
+              float px = (pos - 0.5) * pxPerCell;
+              float ay = abs((st.t - 0.5) * pxPerWidth);
+
+              // Front bright chevron (>) and rear translucent shadow chevron (>)
+              float dFront = jiheiSdSeg(vec2(px, ay), vec2(3.1, 0.0), vec2(-0.3, 2.7));
+              float dRear  = jiheiSdSeg(vec2(px, ay), vec2(-1.1, 0.0), vec2(-4.5, 2.7));
+
+              float frontArrow = 1.0 - smoothstep(0.55, 1.35, dFront);
+              float rearArrow  = (1.0 - smoothstep(0.50, 1.30, dRear)) * 0.52;
+              float arrowGlow  = exp(-dFront * 0.85) * 0.24 + exp(-dRear * 0.85) * 0.1;
+              float rail       = exp(-ay * 1.9) * baseAlpha;
+
+              intensity = clamp(rail + max(frontArrow, rearArrow) * 0.96 + arrowGlow, 0.0, 1.0);
+              highlight = clamp(frontArrow * 0.92 + rearArrow * 0.2, 0.0, 1.0);
+            } else {
+              // Slender subtle center guide line with delicate micro-pulses
+              float y = abs(st.t - 0.5) * 2.0;
+              float pulse = smoothstep(0.25, 0.85, pos) * (1.0 - smoothstep(0.85, 0.99, pos));
+              float radial = exp(-y * 3.8);
+              intensity = clamp((baseAlpha + pulse * 0.32) * radial, 0.0, 0.72);
+              highlight = pulse * radial * 0.35;
+            }
+
+            vec3 col = mix(color.rgb, headColor.rgb, highlight);
             material.diffuse = col;
-            material.emission = col * (0.45 + tail * 0.65);
-            material.alpha = clamp(intensity * color.a, 0.0, 0.9);
+            material.emission = col * (0.45 + highlight * 0.65) * opacity;
+            material.alpha = clamp(intensity * color.a * opacity, 0.0, 0.94);
             return material;
           }
         `,
@@ -160,10 +302,14 @@ function registerCustomMaterials(Cesium: any) {
 
     function JiheiFlowLineMaterialProperty(this: any, options: any = {}) {
       this._definitionChanged = new Cesium.Event();
-      this._color = options.color || Cesium.Color.fromCssColorString('#38f2ff');
-      this._headColor = options.headColor || Cesium.Color.WHITE;
-      this._speed = options.speed !== undefined ? options.speed : 1.5;
-      this._repeat = options.repeat !== undefined ? options.repeat : 12.0;
+      this._color = options.color || Cesium.Color.fromCssColorString('#38bdf8');
+      this._headColor = options.headColor || Cesium.Color.fromCssColorString('#e0faff');
+      this._speed = options.speed !== undefined ? options.speed : 0.7;
+      this._repeat = options.repeat !== undefined ? options.repeat : 48.0;
+      this._direction = options.direction !== undefined ? options.direction : 1.0;
+      this._baseAlpha = options.baseAlpha !== undefined ? options.baseAlpha : 0.1;
+      this._opacity = options.opacity !== undefined ? options.opacity : 1.0;
+      this._mode = options.mode !== undefined ? options.mode : 1.0;
     }
     Object.defineProperties(JiheiFlowLineMaterialProperty.prototype, {
       isConstant: { get: () => false },
@@ -180,6 +326,10 @@ function registerCustomMaterials(Cesium: any) {
       out.headColor = this._headColor;
       out.speed = this._speed;
       out.repeat = this._repeat;
+      out.direction = this._direction;
+      out.baseAlpha = this._baseAlpha;
+      out.opacity = this._opacity;
+      out.mode = this._mode;
       return out;
     };
     JiheiFlowLineMaterialProperty.prototype.equals = function (other: any) {
@@ -208,11 +358,11 @@ function registerCustomMaterials(Cesium: any) {
             float t2 = fract(t1 + 0.5);
             float ring1 = exp(-pow((dist - t1) * 14.0, 2.0)) * (1.0 - t1);
             float ring2 = exp(-pow((dist - t2) * 14.0, 2.0)) * (1.0 - t2) * 0.75;
-            float fill = smoothstep(t1 + 0.04, 0.0, dist) * (1.0 - t1) * 0.24;
-            float outerRim = smoothstep(0.94, 0.985, dist) * (1.0 - smoothstep(0.985, 1.0, dist)) * 0.42;
-            float alpha = clamp((ring1 + ring2 + fill + outerRim) * color.a, 0.0, 0.82);
+            float fill = smoothstep(t1 + 0.04, 0.0, dist) * (1.0 - t1) * 0.16;
+            float outerRim = smoothstep(0.94, 0.985, dist) * (1.0 - smoothstep(0.985, 1.0, dist)) * 0.28;
+            float alpha = clamp((ring1 + ring2 + fill + outerRim) * color.a, 0.0, 0.62);
             material.diffuse = color.rgb;
-            material.emission = color.rgb * (0.62 + (ring1 + ring2) * 0.88);
+            material.emission = color.rgb * (0.48 + (ring1 + ring2) * 0.68);
             material.alpha = alpha;
             return material;
           }
@@ -305,8 +455,26 @@ export class JiheiCesiumEngine {
   private poiRingEntities: any[] = [];
   private poiDotEntities: any[] = [];
   private poisLayerVisible = true;
+  private routeLayerVisible = true;
+  private sectionsLayerVisible = true;
+  private lastRouteFade = -1;
+  private flowMaterials: any[] = [];
+  private glowOuterMaterial: any = null;
+  private sectionCorridorMeta: Record<string, { colorCss: string; baseAlpha: number; mat: any }> = {};
+  private sectionTickMaterials: any[] = [];
+  private leftEdgeCoords: Array<[number, number]> = [];
+  private rightEdgeCoords: Array<[number, number]> = [];
+  private leftFlowEntity: any = null;
+  private rightFlowEntity: any = null;
+  private glowOuterEntity: any = null;
   moduleEntities: Map<string, any[]> = new Map();
-  projectedPins: Array<{ el: HTMLElement; cartesian: any }> = [];
+  projectedPins: Array<{
+    el: HTMLElement;
+    cartesian: any;
+    lastX: number;
+    lastY: number;
+    lastVisible: boolean | null;
+  }> = [];
   overlayRoot: HTMLElement | null = null;
   orbitActive = false;
   sceneVisible = true;
@@ -316,9 +484,15 @@ export class JiheiCesiumEngine {
   canvasWidth = 0;
   canvasHeight = 0;
   private resizeObserver: ResizeObserver | null = null;
+  private eventsBound = false;
+  private visibilityHandler: (() => void) | null = null;
+  private postRenderDisposer: (() => void) | null = null;
+  private screenSpaceHandler: any = null;
+  private overlayClickHandler: ((e: MouseEvent) => void) | null = null;
   private callbacks: CesiumCallbacks = {};
   private assetHeights: Map<string, number> = new Map();
   private bimHeights: Map<string, number> = new Map();
+  private bimModelsBuilt = false;
   private bimOverlapHiddenIds: string[] = [];
   private activeBimObjectId: string | null = null;
   private bimCameraNeedsTerrainReframe = false;
@@ -396,6 +570,7 @@ export class JiheiCesiumEngine {
       }
 
       this.viewer = new Cesium.Viewer(containerEl, viewerOpts);
+      this.viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.5);
       window.viewer = this.viewer;
 
       if (this.viewer.terrainProvider?.errorEvent) {
@@ -510,7 +685,6 @@ export class JiheiCesiumEngine {
       this._buildGlowingRouteVectors(Cesium);
       this._buildHighway3DRoad(Cesium);
       this._buildHighway3DModels(Cesium);
-      this._buildBim3DModels(Cesium);
       if (
         this.viewer.terrainProvider &&
         !(this.viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider) &&
@@ -554,6 +728,8 @@ export class JiheiCesiumEngine {
   }
 
   private _buildSectionCorridorVectors(Cesium: any) {
+    this.sectionCorridorMeta = {};
+    this.sectionTickMaterials = [];
     const total = ROUTE_COORDS.length - 1;
     SECTION_RANGES.forEach((sec, idx) => {
       const iStart = Math.floor(sec.start * total);
@@ -562,21 +738,24 @@ export class JiheiCesiumEngine {
       const flat: number[] = [];
       slice.forEach((p) => flat.push(p[0], p[1]));
 
+      const baseAlpha = idx % 2 === 0 ? 0.14 : 0.1;
       const baseColor = Cesium.Color.fromCssColorString(sec.color);
+      const corridorMat = new Cesium.ColorMaterialProperty(baseColor.withAlpha(baseAlpha));
       const entity = this.viewer.entities.add({
         id: 'corridor_' + sec.id,
         name: sec.name,
         corridor: {
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          width: 1450,
+          width: 1020,
           cornerType: Cesium.CornerType.ROUNDED,
-          material: new Cesium.ColorMaterialProperty(baseColor.withAlpha(idx % 2 === 0 ? 0.22 : 0.16)),
+          material: corridorMat,
           outline: false,
           classificationType: Cesium.ClassificationType.BOTH,
         },
       });
       entity._secId = sec.id;
       this.sectionEntities[sec.id] = entity;
+      this.sectionCorridorMeta[sec.id] = { colorCss: sec.color, baseAlpha, mat: corridorMat };
 
       if (idx > 0) {
         const p = ROUTE_COORDS[iStart];
@@ -584,64 +763,78 @@ export class JiheiCesiumEngine {
         const dx = p[0] - prev[0];
         const dy = p[1] - prev[1];
         const len = Math.hypot(dx, dy) || 1;
-        const nx = (-dy / len) * 0.012;
-        const ny = (dx / len) * 0.008;
+        const nx = (-dy / len) * 0.0085;
+        const ny = (dx / len) * 0.0058;
+        const tickMat = new Cesium.PolylineDashMaterialProperty({
+          color: Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.5),
+          dashLength: 8,
+        });
         const tick = this.viewer.entities.add({
           polyline: {
             positions: Cesium.Cartesian3.fromDegreesArray([p[0] - nx, p[1] - ny, p[0] + nx, p[1] + ny]),
-            width: 1.5,
+            width: 1.2,
             clampToGround: true,
-            material: new Cesium.PolylineDashMaterialProperty({
-              color: Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.68),
-              dashLength: 8,
-            }),
+            material: tickMat,
           },
         });
         this.sectionEntities['tick_' + sec.id] = tick;
+        this.sectionTickMaterials.push(tickMat);
       }
     });
   }
 
   private _buildGlowingRouteVectors(Cesium: any) {
-    const flat: number[] = [];
-    const flatElevated: number[] = [];
-    ROUTE_COORDS.forEach((p) => {
-      flat.push(p[0], p[1]);
-      flatElevated.push(p[0], p[1], 1.5);
-    });
-    const positions = Cesium.Cartesian3.fromDegreesArray(flat);
-    const elevatedPositions = Cesium.Cartesian3.fromDegreesArrayHeights(flatElevated);
+    this.flowMaterials = [];
+    this.leftEdgeCoords = [];
+    this.rightEdgeCoords = [];
 
+    const flatGlow: number[] = [];
+    const flatCore: number[] = [];
+    ROUTE_COORDS.forEach((p) => {
+      flatGlow.push(p[0], p[1], 256);
+      flatCore.push(p[0], p[1], 260);
+    });
+
+    const glowOuterMat = new Cesium.PolylineGlowMaterialProperty({
+      glowPower: 0.15,
+      taperPower: 1.0,
+      color: Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.14),
+    });
+    this.glowOuterMaterial = glowOuterMat;
     const glowOuter = this.viewer.entities.add({
       polyline: {
-        positions,
-        width: 9,
-        clampToGround: true,
-        material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.22,
-          taperPower: 1.0,
-          color: Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.58),
-        }),
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(flatGlow),
+        width: 4.0,
+        clampToGround: false,
+        material: glowOuterMat,
+        depthFailMaterial: glowOuterMat,
       },
     });
+    this.glowOuterEntity = glowOuter;
 
+    const coreFlowMat = new Cesium.JiheiFlowLineMaterialProperty({
+      color: Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.52),
+      headColor: Cesium.Color.fromCssColorString('#e0faff'),
+      speed: 0.6,
+      repeat: 24.0,
+      direction: 1.0,
+      baseAlpha: 0.24,
+      opacity: 1.0,
+      mode: 0.0,
+    });
     const flowCore = this.viewer.entities.add({
       polyline: {
-        positions: elevatedPositions,
-        width: 3.2,
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(flatCore),
+        width: 1.6,
         clampToGround: false,
-        material: new Cesium.JiheiFlowLineMaterialProperty({
-          color: Cesium.Color.fromCssColorString('#38e8ff').withAlpha(0.88),
-          headColor: Cesium.Color.fromCssColorString('#e0faff'),
-          speed: 1.15,
-          repeat: 12.0,
-        }),
+        material: coreFlowMat,
+        depthFailMaterial: coreFlowMat,
       },
     });
     this.flowCoreEntity = flowCore;
 
-    const leftFlat: number[] = [];
-    const rightFlat: number[] = [];
+    const leftElevated: number[] = [];
+    const rightElevated: number[] = [];
     for (let i = 0; i < ROUTE_COORDS.length; i++) {
       const cur = ROUTE_COORDS[i];
       const next = ROUTE_COORDS[Math.min(ROUTE_COORDS.length - 1, i + 1)];
@@ -649,46 +842,61 @@ export class JiheiCesiumEngine {
       const dx = next[0] - prev[0];
       const dy = next[1] - prev[1];
       const len = Math.hypot(dx, dy) || 1;
-      const offLon = (-dy / len) * 0.0068;
-      const offLat = (dx / len) * 0.0046;
-      leftFlat.push(cur[0] + offLon, cur[1] + offLat);
-      rightFlat.push(cur[0] - offLon, cur[1] - offLat);
+      const offLon = (-dy / len) * 0.0056;
+      const offLat = (dx / len) * 0.0040;
+      const lLon = cur[0] + offLon;
+      const lLat = cur[1] + offLat;
+      const rLon = cur[0] - offLon;
+      const rLat = cur[1] - offLat;
+      this.leftEdgeCoords.push([lLon, lLat]);
+      this.rightEdgeCoords.push([rLon, rLat]);
+      leftElevated.push(lLon, lLat, 264);
+      rightElevated.push(rLon, rLat, 264);
     }
+
+    const leftFlowMat = new Cesium.JiheiFlowLineMaterialProperty({
+      color: Cesium.Color.fromCssColorString('#38bdf8').withAlpha(0.92),
+      headColor: Cesium.Color.fromCssColorString('#e0faff'),
+      speed: 0.42,
+      repeat: 22.0,
+      direction: 1.0,
+      baseAlpha: 0.09,
+      opacity: 1.0,
+      mode: 1.0,
+    });
+    const rightFlowMat = new Cesium.JiheiFlowLineMaterialProperty({
+      color: Cesium.Color.fromCssColorString('#5eead4').withAlpha(0.88),
+      headColor: Cesium.Color.fromCssColorString('#ecfeff'),
+      speed: 0.42,
+      repeat: 22.0,
+      direction: -1.0,
+      baseAlpha: 0.09,
+      opacity: 1.0,
+      mode: 1.0,
+    });
 
     const leftEdge = this.viewer.entities.add({
       polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(leftFlat),
-        width: 1.3,
-        clampToGround: true,
-        material: Cesium.Color.fromCssColorString('#67e8f9').withAlpha(0.46),
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(leftElevated),
+        width: 8.0,
+        clampToGround: false,
+        material: leftFlowMat,
+        depthFailMaterial: leftFlowMat,
       },
     });
     const rightEdge = this.viewer.entities.add({
       polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(rightFlat),
-        width: 1.3,
-        clampToGround: true,
-        material: Cesium.Color.fromCssColorString('#67e8f9').withAlpha(0.46),
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(rightElevated),
+        width: 8.0,
+        clampToGround: false,
+        material: rightFlowMat,
+        depthFailMaterial: rightFlowMat,
       },
     });
 
-    [0.14, 0.38, 0.62, 0.85].forEach((ratio) => {
-      const i = Math.floor(ratio * (ROUTE_COORDS.length - 4));
-      const p1 = ROUTE_COORDS[i];
-      const p2 = ROUTE_COORDS[i + 3];
-      const arrow = this.viewer.entities.add({
-        polyline: {
-          positions: Cesium.Cartesian3.fromDegreesArray([p1[0], p1[1], p2[0], p2[1]]),
-          width: 8,
-          clampToGround: true,
-          material: new Cesium.PolylineArrowMaterialProperty(
-            Cesium.Color.fromCssColorString('#cffafe').withAlpha(0.72)
-          ),
-        },
-      });
-      this.routeEntities.push(arrow);
-    });
-
+    this.leftFlowEntity = leftEdge;
+    this.rightFlowEntity = rightEdge;
+    this.flowMaterials.push(coreFlowMat, leftFlowMat, rightFlowMat);
     this.routeEntities.push(glowOuter, flowCore, leftEdge, rightEdge);
   }
 
@@ -979,12 +1187,33 @@ export class JiheiCesiumEngine {
         }
         this.roadSyncUpdaters.forEach((fn) => fn(routeHeights));
 
+        if (this.glowOuterEntity?.polyline) {
+          const gFlat: number[] = [];
+          for (let i = 0; i < rCount; i++) {
+            gFlat.push(ROUTE_COORDS[i][0], ROUTE_COORDS[i][1], routeHeights[i] + 12);
+          }
+          this.glowOuterEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(gFlat);
+        }
         if (this.flowCoreEntity?.polyline) {
           const flowFlat: number[] = [];
           for (let i = 0; i < rCount; i++) {
-            flowFlat.push(ROUTE_COORDS[i][0], ROUTE_COORDS[i][1], routeHeights[i] + 1.5);
+            flowFlat.push(ROUTE_COORDS[i][0], ROUTE_COORDS[i][1], routeHeights[i] + 15);
           }
           this.flowCoreEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(flowFlat);
+        }
+        if (this.leftFlowEntity?.polyline && this.leftEdgeCoords.length === rCount) {
+          const lFlat: number[] = [];
+          for (let i = 0; i < rCount; i++) {
+            lFlat.push(this.leftEdgeCoords[i][0], this.leftEdgeCoords[i][1], routeHeights[i] + 18);
+          }
+          this.leftFlowEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(lFlat);
+        }
+        if (this.rightFlowEntity?.polyline && this.rightEdgeCoords.length === rCount) {
+          const rFlat: number[] = [];
+          for (let i = 0; i < rCount; i++) {
+            rFlat.push(this.rightEdgeCoords[i][0], this.rightEdgeCoords[i][1], routeHeights[i] + 18);
+          }
+          this.rightFlowEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(rFlat);
         }
 
         for (let i = 0; i < poiEntries.length; i++) {
@@ -1034,10 +1263,19 @@ export class JiheiCesiumEngine {
     }
   }
 
+  /** Lazily assemble 16 BIM stage models only when entering BIM view or enabling BIM layer. */
+  ensureBim3DModels() {
+    const Cesium = window.Cesium;
+    if (this.bimModelsBuilt || !this.viewer || !Cesium) return;
+    this.bimModelsBuilt = true;
+    this._buildBim3DModels(Cesium);
+  }
+
   private _buildBim3DModels(Cesium: any) {
     BIM_STAGE_CONFIGS.forEach((spec) => {
       const { lon, lat, headingRad } = spec.resolvePose();
-      const pos = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+      const sampledH = this.bimHeights.get(spec.id) ?? 0;
+      const pos = Cesium.Cartesian3.fromDegrees(lon, lat, sampledH);
       const orientation = Cesium.Transforms.headingPitchRollQuaternion(
         pos,
         new Cesium.HeadingPitchRoll(headingRad, 0, 0)
@@ -1071,7 +1309,7 @@ export class JiheiCesiumEngine {
 
   private _buildPoiVectorAnchors(Cesium: any) {
     const pulseMat = new Cesium.JiheiPulseRingMaterialProperty({
-      color: Cesium.Color.fromCssColorString('#38f2ff'),
+      color: Cesium.Color.fromCssColorString('#38bdf8'),
       speed: 0.72,
     });
     Object.entries(POI_GEO).forEach(([poiId, geo]) => {
@@ -1080,8 +1318,8 @@ export class JiheiCesiumEngine {
         id: 'poi_ring_' + poiId,
         position: pos,
         ellipse: {
-          semiMajorAxis: 1620,
-          semiMinorAxis: 1620,
+          semiMajorAxis: 1120,
+          semiMinorAxis: 1120,
           material: pulseMat,
           outline: false,
         },
@@ -1092,10 +1330,10 @@ export class JiheiCesiumEngine {
         id: 'poi_dot_' + poiId,
         position: pos,
         point: {
-          pixelSize: 11,
-          color: Cesium.Color.fromCssColorString('#38f2ff'),
+          pixelSize: 10,
+          color: Cesium.Color.fromCssColorString('#67e8f9'),
           outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 2.5,
+          outlineWidth: 2,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -1131,6 +1369,9 @@ export class JiheiCesiumEngine {
       this.projectedPins.push({
         el,
         cartesian: Cesium.Cartesian3.fromDegrees(lon, lat, alt),
+        lastX: Number.NaN,
+        lastY: Number.NaN,
+        lastVisible: null,
       });
     };
 
@@ -1164,6 +1405,12 @@ export class JiheiCesiumEngine {
       });
     }
 
+    // Hide static bridge label that shares exact coordinate with POI_GEO.bridgeA when POI pins are visible
+    const dupBridgeMarker = this.viewer?.entities.getById('hw_marker_br_l2');
+    if (dupBridgeMarker?.label) {
+      dupBridgeMarker.label.show = !config.showPois;
+    }
+
     if (config.showPois && config.poiObjects) {
       Object.values(config.poiObjects).forEach((poi) => {
         const geo = POI_GEO[poi.id];
@@ -1182,7 +1429,11 @@ export class JiheiCesiumEngine {
     }
 
     if (config.showViewpoint && config.roamingStationId) {
-      const rGeo = ROAM_GEO[config.roamingStationId] || ROAM_GEO.bridgeA;
+      const rGeo = ROAM_GEO[config.roamingStationId] || ROAM_GEO.ic_mingshui;
+      const sampledAlt =
+        (rGeo.assetId ? this.assetHeights.get(rGeo.assetId) : undefined) ??
+        (rGeo.bimId ? this.bimHeights.get(rGeo.bimId) : undefined);
+      const pinAlt = typeof sampledAlt === 'number' && Number.isFinite(sampledAlt) ? sampledAlt + 36 : rGeo.alt + 36;
       addPin(
         `<div class="camera-viewpoint-badge" style="position:relative;transform:translate(-50%,-138%);">
           <div class="camera-viewpoint-pill">${icons.camera || ''}<span>当前视点</span></div>
@@ -1190,7 +1441,7 @@ export class JiheiCesiumEngine {
         </div>`,
         rGeo.lon,
         rGeo.lat,
-        rGeo.alt + 160
+        pinAlt
       );
     }
 
@@ -1216,13 +1467,76 @@ export class JiheiCesiumEngine {
     for (let i = 0; i < this.projectedPins.length; i++) {
       const item = this.projectedPins[i];
       const pt = toWindow(scene, item.cartesian);
-      if (pt && pt.x >= -120 && pt.x <= w + 120 && pt.y >= -80 && pt.y <= h + 80) {
-        item.el.style.display = 'block';
-        item.el.style.transform = `translate3d(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px, 0)`;
-      } else {
+      const visible = Boolean(pt && pt.x >= -120 && pt.x <= w + 120 && pt.y >= -80 && pt.y <= h + 80);
+      if (visible && pt) {
+        if (item.lastVisible !== true) {
+          item.el.style.display = 'block';
+        }
+        if (
+          item.lastVisible !== true ||
+          Number.isNaN(item.lastX) ||
+          Math.abs(pt.x - item.lastX) > 0.5 ||
+          Math.abs(pt.y - item.lastY) > 0.5
+        ) {
+          item.el.style.transform = `translate3d(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px, 0)`;
+          item.lastX = pt.x;
+          item.lastY = pt.y;
+        }
+        item.lastVisible = true;
+      } else if (item.lastVisible !== false) {
         item.el.style.display = 'none';
+        item.lastVisible = false;
       }
     }
+  }
+
+  /** Cap resolution scale on 2x/HiDPI displays and drop further in dimmed mode. */
+  setResolutionMode(mode: 'interactive' | 'dimmed' | 'opaque') {
+    if (!this.viewer) return;
+    const targetScale =
+      mode === 'dimmed' ? 0.75 : Math.min(window.devicePixelRatio || 1, 1.5);
+    if (Math.abs((this.viewer.resolutionScale ?? 1) - targetScale) > 0.01) {
+      this.viewer.resolutionScale = targetScale;
+    }
+  }
+
+  /** Remove bound DOM/Cesium scene event listeners to prevent duplicate bindings. */
+  cleanupSceneEvents() {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
+
+    if (this.postRenderDisposer) {
+      try {
+        this.postRenderDisposer();
+      } catch {
+        // ignore
+      }
+      this.postRenderDisposer = null;
+    }
+
+    if (this.screenSpaceHandler) {
+      try {
+        this.screenSpaceHandler.destroy();
+      } catch {
+        // ignore
+      }
+      this.screenSpaceHandler = null;
+    }
+
+    if (this.overlayRoot && this.overlayClickHandler) {
+      this.overlayRoot.removeEventListener('click', this.overlayClickHandler);
+    }
+    this.overlayClickHandler = null;
+    this.eventsBound = false;
+  }
+
+  dispose() {
+    this.cleanupSceneEvents();
   }
 
   setRenderActive(visible: boolean) {
@@ -1245,20 +1559,25 @@ export class JiheiCesiumEngine {
   }
 
   private _bindSceneEvents(Cesium: any) {
+    if (this.eventsBound) {
+      this.cleanupSceneEvents();
+    }
     this._syncCanvasSize();
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => this._syncCanvasSize());
       this.resizeObserver.observe(this.viewer.container);
     }
-    document.addEventListener('visibilitychange', () => this._applyRenderLoopState());
+    this.visibilityHandler = () => this._applyRenderLoopState();
+    document.addEventListener('visibilitychange', this.visibilityHandler);
 
-    this.viewer.scene.postRender.addEventListener(() => {
+    this.postRenderDisposer = this.viewer.scene.postRender.addEventListener(() => {
       if (!this.renderActive) return;
       this._updateProjectedPositions();
       this._updatePoiZoomVisibility();
     });
 
     const handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
+    this.screenSpaceHandler = handler;
     handler.setInputAction((movement: any) => {
       const picked = this.viewer.scene.pick(movement.position);
       const pickedEnt = picked?.id || picked?.primitive?.id;
@@ -1275,7 +1594,7 @@ export class JiheiCesiumEngine {
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     if (this.overlayRoot) {
-      this.overlayRoot.addEventListener('click', (e) => {
+      this.overlayClickHandler = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         const poiEl = target.closest<HTMLElement>('[data-poi]');
         if (poiEl?.dataset.poi) {
@@ -1292,8 +1611,10 @@ export class JiheiCesiumEngine {
           this.flyToDirection(dirEl.dataset.dir as 'start' | 'end');
           this.callbacks.onDirectionClick?.(dirEl.dataset.dir as 'start' | 'end');
         }
-      });
+      };
+      this.overlayRoot.addEventListener('click', this.overlayClickHandler);
     }
+    this.eventsBound = true;
   }
 
   applyLayers(opts: {
@@ -1326,35 +1647,43 @@ export class JiheiCesiumEngine {
       this.layers.satellite.saturation = 1.22;
     }
 
+    this.sectionsLayerVisible = opts.sections !== false;
+    this.routeLayerVisible = opts.route !== false;
+
     Object.entries(this.sectionEntities).forEach(([key, ent]) => {
-      ent.show = opts.sections !== false;
       if (!key.startsWith('tick_') && ent.corridor) {
         const isSelected = opts.activeSectionId && ent._secId === opts.activeSectionId;
         const isDimmed = opts.activeSectionId && ent._secId !== opts.activeSectionId;
-        const col = isSelected ? '#38f2ff' : '#22d3ee';
-        const alpha = isSelected ? 0.38 : isDimmed ? 0.08 : 0.19;
-        ent.corridor.material = new Cesium.ColorMaterialProperty(
-          Cesium.Color.fromCssColorString(col).withAlpha(alpha)
-        );
-        ent.corridor.width = isSelected ? 2050 : 1450;
+        const col = isSelected ? '#38bdf8' : '#22d3ee';
+        const alpha = isSelected ? 0.26 : isDimmed ? 0.05 : 0.13;
+        const meta = this.sectionCorridorMeta[key];
+        if (meta) {
+          meta.colorCss = col;
+          meta.baseAlpha = alpha;
+        }
+        ent.corridor.width = isSelected ? 1480 : 1020;
       }
     });
 
-    this.routeEntities.forEach((e) => { e.show = opts.route !== false; });
     const showModels = opts.models !== false;
     this.highwayRoadEntities.forEach((e) => { e.show = showModels; });
     this.highwayModelEntities.forEach((e) => {
       e.show = showModels && !this.bimOverlapHiddenIds.includes(e.id);
     });
     const showBim = designMode || !!opts.bim;
+    if (showBim) {
+      this.ensureBim3DModels();
+    }
     this.bimEntities.forEach((e) => { e.show = showBim; });
     this.poisLayerVisible = opts.pois !== false;
+    this.lastRouteFade = -1;
     this._updatePoiZoomVisibility();
     this.facilityEntities.forEach((e) => { e.show = opts.pois !== false; });
   }
 
   private _updatePoiZoomVisibility() {
-    if (!this.viewer) return;
+    const Cesium = window.Cesium;
+    if (!this.viewer || !Cesium) return;
     const camH = this.viewer.camera?.positionCartographic?.height ?? 62000;
     const showRings = this.poisLayerVisible && camH >= 8000;
     const showDots = this.poisLayerVisible && camH >= 2000;
@@ -1365,6 +1694,41 @@ export class JiheiCesiumEngine {
     for (let i = 0; i < this.poiDotEntities.length; i++) {
       const ent = this.poiDotEntities[i];
       if (ent.show !== showDots) ent.show = showDots;
+    }
+
+    // Smooth camera-altitude fade for flowing route transmission lines & section corridors:
+    // Full visibility at >= 26 km, cubic smoothstep fade-out down to 0 at <= 5.5 km so close-up 3D models stay clean.
+    const t = Math.max(0, Math.min(1, (camH - 5500) / (26000 - 5500)));
+    const fade = t * t * (3 - 2 * t);
+    const routeVisible = this.routeLayerVisible && fade > 0.01;
+    const sectionsVisible = this.sectionsLayerVisible && fade > 0.01;
+
+    for (let i = 0; i < this.routeEntities.length; i++) {
+      const ent = this.routeEntities[i];
+      if (ent.show !== routeVisible) ent.show = routeVisible;
+    }
+    const secValues = Object.values(this.sectionEntities);
+    for (let i = 0; i < secValues.length; i++) {
+      const ent = secValues[i];
+      if (ent.show !== sectionsVisible) ent.show = sectionsVisible;
+    }
+
+    if (Math.abs(fade - this.lastRouteFade) > 0.012) {
+      this.lastRouteFade = fade;
+      for (let i = 0; i < this.flowMaterials.length; i++) {
+        this.flowMaterials[i]._opacity = fade;
+      }
+      if (this.glowOuterMaterial) {
+        this.glowOuterMaterial.color = Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.14 * fade);
+      }
+      const corridorMetaValues = Object.values(this.sectionCorridorMeta);
+      for (let i = 0; i < corridorMetaValues.length; i++) {
+        const meta = corridorMetaValues[i];
+        meta.mat.color = Cesium.Color.fromCssColorString(meta.colorCss).withAlpha(meta.baseAlpha * fade);
+      }
+      for (let i = 0; i < this.sectionTickMaterials.length; i++) {
+        this.sectionTickMaterials[i].color = Cesium.Color.fromCssColorString('#7dd3fc').withAlpha(0.5 * fade);
+      }
     }
   }
 
@@ -1413,6 +1777,7 @@ export class JiheiCesiumEngine {
   updateBimSimulation(activeObjectId: string, stageStates: Array<'done' | 'doing' | 'todo'>) {
     const Cesium = window.Cesium;
     if (!this.ready || !Cesium) return;
+    this.ensureBim3DModels();
     this.activeBimObjectId = activeObjectId;
 
     const spec = BIM_STAGE_CONFIGS.find((s) => s.id === activeObjectId);
@@ -1487,6 +1852,7 @@ export class JiheiCesiumEngine {
   flyToBimObject(objectId: string, duration = 1.25) {
     const Cesium = window.Cesium;
     if (!this.ready || !Cesium) return;
+    this.ensureBim3DModels();
     const spec = BIM_STAGE_CONFIGS.find((s) => s.id === objectId) ?? BIM_STAGE_CONFIGS[0];
     this.orbitActive = false;
     const { lon, lat, headingRad } = spec.resolvePose();
@@ -1647,22 +2013,83 @@ export class JiheiCesiumEngine {
     });
   }
 
-  flyToRoamingStation(stationId: string, viewMode: string, speed = 1.0) {
+  flyToRoamingStation(
+    stationId: string,
+    viewMode: string,
+    speed = 1.0,
+    renderMode: 'real' | 'design' = 'real'
+  ) {
     const Cesium = window.Cesium;
     if (!this.ready || !Cesium) return;
     this.orbitActive = false;
-    const r = ROAM_GEO[stationId] || ROAM_GEO.bridgeA;
+    const r = ROAM_GEO[stationId] || ROAM_GEO.ic_mingshui;
     const isAlong = viewMode === 'along';
-    const target = Cesium.Cartesian3.fromDegrees(r.lon, r.lat, r.alt);
-    const dur = Math.max(0.7, 1.6 / (speed || 1));
-    this.viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(target, isAlong ? 900 : 1800), {
-      offset: new Cesium.HeadingPitchRange(
-        Cesium.Math.toRadians(isAlong ? r.headingAlong : r.headingOver),
-        Cesium.Math.toRadians(isAlong ? r.pitchAlong : r.pitchOver),
-        isAlong ? r.rangeAlong : r.rangeOver
-      ),
-      duration: dur,
-    });
+    const isDesign = renderMode === 'design';
+    const dur = Math.max(0.7, 1.45 / (speed || 1));
+    const rangeScale = isDesign ? 0.84 : 1.0;
+
+    const doFly = (groundAlt: number) => {
+      if (!this.viewer) return;
+      const target = Cesium.Cartesian3.fromDegrees(r.lon, r.lat, groundAlt + 12);
+      const radius = isAlong ? r.radiusAlong : r.radiusOver;
+      const range = Math.round((isAlong ? r.rangeAlong : r.rangeOver) * rangeScale);
+      this.viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(target, radius), {
+        offset: new Cesium.HeadingPitchRange(
+          Cesium.Math.toRadians(isAlong ? r.headingAlong : r.headingOver),
+          Cesium.Math.toRadians(isAlong ? r.pitchAlong : r.pitchOver),
+          range
+        ),
+        duration: dur,
+      });
+    };
+
+    const cachedAlt =
+      (r.assetId ? this.assetHeights.get(r.assetId) : undefined) ??
+      (r.bimId ? this.bimHeights.get(r.bimId) : undefined);
+    if (typeof cachedAlt === 'number' && Number.isFinite(cachedAlt)) {
+      doFly(cachedAlt);
+      return;
+    }
+
+    const rawH = this.viewer.scene.globe?.getHeight(Cesium.Cartographic.fromDegrees(r.lon, r.lat));
+    const fallbackAlt =
+      typeof rawH === 'number' && Number.isFinite(rawH) && rawH >= -100 && rawH <= 5000
+        ? rawH
+        : r.alt;
+    const tp = this.viewer.terrainProvider;
+
+    if (!tp || tp instanceof Cesium.EllipsoidTerrainProvider || !tp.availability) {
+      doFly(fallbackAlt);
+      return;
+    }
+
+    let settled = false;
+    const fallbackTimer = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      doFly(fallbackAlt);
+    }, 650);
+
+    Promise.resolve(Cesium.sampleTerrainMostDetailed(tp, [Cesium.Cartographic.fromDegrees(r.lon, r.lat)]))
+      .then((res: any[]) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        const h = res?.[0]?.height;
+        if (typeof h === 'number' && Number.isFinite(h) && h >= -100 && h <= 5000) {
+          if (r.assetId) this.assetHeights.set(r.assetId, h);
+          if (r.bimId) this.bimHeights.set(r.bimId, h);
+          doFly(h);
+        } else {
+          doFly(fallbackAlt);
+        }
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        doFly(fallbackAlt);
+      });
   }
 
   flyToDirection(dir: 'start' | 'end') {

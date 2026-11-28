@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, UserCheck } from 'lucide-react';
 import { MODULE_REGISTRY } from '@/lib/modules/registry';
+import { preloadModule } from '@/components/shell/ModuleStageLoader';
 import { usePlatformStore } from '@/lib/store/platform-store';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
 import { authClient } from '@/lib/auth-client';
@@ -25,6 +26,7 @@ export function TopHeader({
   const topMods = MODULE_REGISTRY.filter((m) => m.showInTopNav);
 
   async function handleSignOut() {
+    usePlatformStore.getState().resetDemoState();
     await authClient.signOut();
     router.push('/login');
     router.refresh();
@@ -36,6 +38,7 @@ export function TopHeader({
         className="brand-area"
         id="brandHomeBtn"
         title="返回综合首页全线视图"
+        onMouseEnter={() => preloadModule('home')}
         onClick={() => {
           setActiveSectionId(null);
           const ces = getGlobalCesiumEngine();
@@ -71,6 +74,8 @@ export function TopHeader({
               href={`/${m.id}/${defaultSub}`}
               className={`main-nav-item ${isActive ? 'active' : ''}`}
               data-mod={m.id}
+              onMouseEnter={() => preloadModule(m.id)}
+              onFocus={() => preloadModule(m.id)}
             >
               {m.name}
             </Link>
@@ -79,19 +84,22 @@ export function TopHeader({
       </nav>
 
       {userName ? (
-        <div className="ml-auto flex items-center gap-2 shrink-0">
-          <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-sky-950/75 border border-sky-400/35 text-sky-200">
-            <UserCheck size={12} className="text-cyan-300" />
-            <span>{userName}</span>
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <span
+            title={userRole ? `${userName} [${userRole}]` : userName}
+            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-slate-950/70 border border-sky-300/25 text-sky-100 whitespace-nowrap"
+          >
+            <UserCheck size={12} className="text-sky-300 shrink-0" />
+            <span>{userName.replace(/\s*[（(][^）)]*[）)]\s*/g, '').trim() || userName}</span>
             {userRole ? (
-              <span className="text-cyan-300/90 font-semibold">[{userRole}]</span>
+              <span className="text-sky-300/90 font-semibold">· {userRole}</span>
             ) : null}
           </span>
           <button
             type="button"
             onClick={handleSignOut}
             title="退出登录"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border border-sky-400/35 bg-sky-950/70 text-sky-200 hover:border-cyan-300 hover:text-white cursor-pointer"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border border-sky-300/25 bg-slate-950/65 text-sky-200 hover:border-sky-300/65 hover:text-white cursor-pointer whitespace-nowrap"
           >
             <LogOut size={12} />
             <span className="hidden sm:inline">退出</span>

@@ -29,7 +29,7 @@ import {
   LiveRthModal,
   LiveTakeoverModal,
   LiveTaskDetailModal,
-} from './UavModals';
+} from './UavModalsLazy';
 
 interface LiveResponse {
   tasks: UavTaskDTO[];

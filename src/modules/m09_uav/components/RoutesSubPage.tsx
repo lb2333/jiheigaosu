@@ -27,7 +27,7 @@ import {
   type UavRouteDTO,
   type UavWaypoint,
 } from '../types';
-import { NewRouteModal, RouteHistoryModal } from './UavModals';
+import { NewRouteModal, RouteHistoryModal } from './UavModalsLazy';
 
 interface RoutesResponse {
   routes: UavRouteDTO[];

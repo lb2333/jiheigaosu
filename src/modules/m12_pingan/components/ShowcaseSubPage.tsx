@@ -204,6 +204,8 @@ export function ShowcaseSubPage({
                     className="m12-stage-img"
                     src={activeSlide.imgPath}
                     alt={activeSlide.title}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <StageHudSvg slide={activeSlide} />
                   <div className="m12-stage-grad" />
@@ -276,7 +278,7 @@ export function ShowcaseSubPage({
                   }}
                 >
                   <div className="m12-thumb-pic">
-                    <img src={s.imgPath} alt={s.title} />
+                    <img src={s.imgPath} alt={s.title} loading="lazy" decoding="async" />
                     {s.kind === 'video' ? (
                       <span className="m12-thumb-play">
                         <Play size={11} fill="currentColor" />

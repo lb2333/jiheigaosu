@@ -29,7 +29,7 @@ import {
   HangarDetailModal,
   OverviewRecordModal,
   PoiDetailModal,
-} from './UavModals';
+} from './UavModalsLazy';
 
 interface OverviewResponse {
   hangars: UavHangarDTO[];

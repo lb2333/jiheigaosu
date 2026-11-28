@@ -20,7 +20,7 @@ import {
   type PublishReceiptDTO,
 } from '../types';
 import { LedBoardPreview } from './LedBoardPreview';
-import { AuditTrailModal } from './PublishModals';
+import { AuditTrailModal } from './PublishModalsLazy';
 
 interface ReceiptsResponse {
   order: PublishOrderDTO | null;

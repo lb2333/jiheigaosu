@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Camera,
@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Search,
 } from 'lucide-react';
+import { useApiQuery } from '@/lib/hooks/useApiQuery';
 import {
   PERIOD_OPTIONS,
   RISK_CATEGORIES,
@@ -67,33 +68,22 @@ export function OverviewSubPage({
   const [category, setCategory] = useState('all');
   const [quickTab, setQuickTab] = useState<'unclosed' | 'overdue' | 'review'>('unclosed');
   const [page, setPage] = useState(1);
-  const [data, setData] = useState<OverviewResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [urgingId, setUrgingId] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const qs = new URLSearchParams({
-        sectionId: activeSectionId ?? '',
-        category,
-        period,
-        quickTab,
-        page: String(page),
-      });
-      const res = await fetch(`/api/v1/m04/overview?${qs.toString()}`);
-      if (res.ok) {
-        const json = (await res.json()) as OverviewResponse;
-        setData(json);
-      }
-    } finally {
-      setLoading(false);
-    }
+  const overviewUrl = useMemo(() => {
+    const qs = new URLSearchParams({
+      sectionId: activeSectionId ?? '',
+      category,
+      period,
+      quickTab,
+      page: String(page),
+    });
+    return `/api/v1/m04/overview?${qs.toString()}`;
   }, [activeSectionId, category, period, quickTab, page]);
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  const { data, loading, refetch } = useApiQuery<OverviewResponse>(overviewUrl, {
+    staleTimeMs: 15_000,
+  });
 
   async function handleUrge(h: SafetyHazardDTO) {
     setUrgingId(h.id);
@@ -105,7 +95,7 @@ export function OverviewSubPage({
       });
       if (res.ok) {
         showToast(`已向 ${secUnit(h.sectionId)}（${h.owner}）发送催办通知：${h.id}`);
-        await loadData();
+        await refetch({ force: true });
       } else {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
         showToast(err.error || '催办发送失败');
@@ -221,7 +211,7 @@ export function OverviewSubPage({
             type="button"
             className="m04-btn-query"
             onClick={() => {
-              void loadData();
+              void refetch({ force: true });
               showToast('已按当前筛选条件刷新安全数据');
             }}
           >

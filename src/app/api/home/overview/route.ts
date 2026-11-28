@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { asc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
+import { PRIVATE_CACHE_HEADERS } from '@/lib/api/auth-guard';
 import { db } from '@/db';
 import {
   workSections,
@@ -29,12 +30,15 @@ export async function GET(req: NextRequest) {
     db.select().from(showcaseTopics).orderBy(asc(showcaseTopics.sortOrder)),
   ]);
 
-  return NextResponse.json({
-    datePreset: preset,
-    workSections: sections,
-    poiObjects: pois,
-    focusItems: focus,
-    milestoneNodes: milestones,
-    showcaseTopics: topics,
-  });
+  return NextResponse.json(
+    {
+      datePreset: preset,
+      workSections: sections,
+      poiObjects: pois,
+      focusItems: focus,
+      milestoneNodes: milestones,
+      showcaseTopics: topics,
+    },
+    { headers: PRIVATE_CACHE_HEADERS }
+  );
 }

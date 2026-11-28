@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   safetyActivities,
@@ -8,6 +8,7 @@ import {
   safetyRiskPoints,
 } from '@/db/schema/domains/m04';
 import { computeHazardStats } from '@/modules/m04_safety/types';
+import { PRIVATE_CACHE_HEADERS } from '@/lib/api/auth-guard';
 import { requireSession } from '../_utils';
 
 export async function GET(req: NextRequest) {
@@ -36,18 +37,18 @@ export async function GET(req: NextRequest) {
   const activityFilters = [];
   if (sectionId && sectionId !== 'all') activityFilters.push(eq(safetyActivities.sectionId, sectionId));
 
-  const [scopedHazards, scopedRisks, pendingAiRows, activityRows] = await Promise.all([
+  const [scopedHazards, riskCountRows, aiPendingRows, activityRows] = await Promise.all([
     db
       .select()
       .from(safetyHazards)
       .where(and(...hazardFilters))
       .orderBy(asc(safetyHazards.sortOrder), desc(safetyHazards.createdAt), asc(safetyHazards.id)),
     db
-      .select({ id: safetyRiskPoints.id })
+      .select({ total: count() })
       .from(safetyRiskPoints)
       .where(riskFilters.length ? and(...riskFilters) : undefined),
     db
-      .select({ id: safetyAiAlerts.id })
+      .select({ total: count() })
       .from(safetyAiAlerts)
       .where(and(...aiFilters)),
     db
@@ -71,15 +72,18 @@ export async function GET(req: NextRequest) {
   const safePage = Math.min(page, totalPages);
   const trackRows = trackList.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  return NextResponse.json({
-    period,
-    riskCount: scopedRisks.length,
-    aiPendingCount: pendingAiRows.length,
-    stats,
-    trackTotal: trackList.length,
-    trackPage: safePage,
-    trackTotalPages: totalPages,
-    trackRows,
-    activities: activityRows.slice(0, 4),
-  });
+  return NextResponse.json(
+    {
+      period,
+      riskCount: Number(riskCountRows[0]?.total ?? 0),
+      aiPendingCount: Number(aiPendingRows[0]?.total ?? 0),
+      stats,
+      trackTotal: trackList.length,
+      trackPage: safePage,
+      trackTotalPages: totalPages,
+      trackRows,
+      activities: activityRows.slice(0, 4),
+    },
+    { headers: PRIVATE_CACHE_HEADERS }
+  );
 }

@@ -524,6 +524,8 @@ export function AiAlertSubPage({
                 <img
                   src={IMG_PATHS[selAlert.imgKey] || IMG_PATHS.corridor}
                   alt="AI预警视频证据"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="m04-cam-hud">
                   <span className="m04-hud-pill">{selAlert.camera}</span>
@@ -621,6 +623,8 @@ export function AiAlertSubPage({
                     <img
                       src={IMG_PATHS[selAlert.imgKey] || IMG_PATHS.corridor}
                       alt={`截图 ${ft}`}
+                      loading="lazy"
+                      decoding="async"
                       style={
                         idx === 0
                           ? { filter: 'brightness(0.95)' }

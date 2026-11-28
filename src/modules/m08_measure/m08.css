@@ -98,7 +98,7 @@
   align-items: center;
   gap: 6px;
   box-shadow: 0 0 14px rgba(22, 119, 255, 0.45);
-  transition: all 0.18s ease;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
 }
 
 .m08-btn-query:hover {
@@ -435,7 +435,7 @@
   border: 1px solid rgba(56, 189, 248, 0.22);
   text-align: center;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: color 0.18s, background-color 0.18s, border-color 0.18s, transform 0.18s, opacity 0.18s, box-shadow 0.18s;
 }
 
 .m08-pay-tile:hover {
@@ -537,7 +537,7 @@
   color: #cfe4ff;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 
 .m08-page-btn:hover:not(:disabled) {
@@ -582,7 +582,7 @@
   background: rgba(12, 42, 92, 0.56);
   border: 1px solid rgba(56, 189, 248, 0.24);
   cursor: pointer;
-  transition: all 0.18s;
+  transition: color 0.18s, background-color 0.18s, border-color 0.18s, transform 0.18s, opacity 0.18s, box-shadow 0.18s;
 }
 
 .m08-att-card:hover {
@@ -924,6 +924,13 @@
   font-size: 13px;
   font-weight: 700;
   color: #7dd3fc;
+}
+
+.m08-loading {
+  padding: 48px 16px;
+  text-align: center;
+  color: #93b8de;
+  font-size: 13px;
 }
 
 @media (max-width: 1360px) {

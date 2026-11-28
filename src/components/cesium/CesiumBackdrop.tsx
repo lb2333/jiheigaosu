@@ -1,26 +1,67 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { getGlobalCesiumEngine } from '@/lib/cesium/engine';
 import { usePlatformStore } from '@/lib/store/platform-store';
+import { getModuleDef, getSubPageDef, type CesiumMode } from '@/lib/modules/registry';
 import { STATIC_POI_OBJECTS, STATIC_WORK_SECTIONS } from '@/lib/modules/platform-data';
+
+function ensureCesiumStylesheet() {
+  if (typeof document === 'undefined') return;
+  if (document.querySelector('link[data-jihei-cesium-css="1"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/lib/cesium/Widgets/widgets.css';
+  link.dataset.jiheiCesiumCss = '1';
+  document.head.appendChild(link);
+}
 
 export function CesiumBackdrop() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const bootStartedRef = useRef(false);
 
-  const cesiumMode = usePlatformStore((s) => s.cesiumMode);
+  const pathname = usePathname();
+  const routeCesiumMode = useMemo<CesiumMode>(() => {
+    const segs = (pathname || '').split('/').filter(Boolean);
+    if (segs.length >= 2) {
+      const resolved = getSubPageDef(segs[0], segs[1]);
+      if (resolved) return resolved.sub.cesiumMode;
+    }
+    if (segs.length === 1) {
+      const mod = getModuleDef(segs[0]);
+      if (mod?.subPages[0]) return mod.subPages[0].cesiumMode;
+    }
+    return 'interactive';
+  }, [pathname]);
+
+  const effectiveModeRef = useRef<CesiumMode>(routeCesiumMode);
+  effectiveModeRef.current = routeCesiumMode;
+
+  const setCesiumMode = usePlatformStore((s) => s.setCesiumMode);
   const setCesiumReady = usePlatformStore((s) => s.setCesiumReady);
   const setSelectedPoiId = usePlatformStore((s) => s.setSelectedPoiId);
   const toggleSectionId = usePlatformStore((s) => s.toggleSectionId);
-  const openModalHtml = usePlatformStore((s) => s.openModalHtml);
+  const openModal = usePlatformStore((s) => s.openModal);
   const showToast = usePlatformStore((s) => s.showToast);
 
   useEffect(() => {
+    setCesiumMode(routeCesiumMode);
+  }, [routeCesiumMode, setCesiumMode]);
+
+  useEffect(() => {
+    if (routeCesiumMode === 'opaque') return;
+
+    const engine = getGlobalCesiumEngine();
+    if (engine.ready || bootStartedRef.current) return;
+
     let cancelled = false;
+    bootStartedRef.current = true;
 
     async function bootCesium() {
       if (typeof window === 'undefined') return;
+      ensureCesiumStylesheet();
       window.CESIUM_BASE_URL = '/lib/cesium/';
 
       if (!window.Cesium) {
@@ -45,9 +86,11 @@ export function CesiumBackdrop() {
         });
       }
 
-      if (cancelled || !containerRef.current || !overlayRef.current) return;
+      if (cancelled || !containerRef.current || !overlayRef.current) {
+        if (!engine.ready) bootStartedRef.current = false;
+        return;
+      }
 
-      const engine = getGlobalCesiumEngine();
       const ok = engine.init(containerRef.current, overlayRef.current, {
         onPoiClick: (poiId) => {
           setSelectedPoiId(poiId);
@@ -71,61 +114,84 @@ export function CesiumBackdrop() {
         },
         onAssetClick: (asset) => {
           showToast(`已飞抵${asset.categoryLabel}：${asset.name}（${asset.stake}）`);
-          openModalHtml(
-            `三维构造物 · ${asset.name}`,
-            `
-            <div class="detail-grid">
-              <div class="detail-stat-card"><span>构造物分类</span><strong>${asset.categoryLabel}</strong></div>
-              <div class="detail-stat-card"><span>所属工区 / 桩号</span><strong>${asset.sectionName} · ${asset.stake}</strong></div>
-              <div class="detail-stat-card"><span>断面标准</span><strong>${asset.roadbedWidth}（双向四车道）</strong></div>
-            </div>
-            <table class="data-table">
-              <tbody>
-                <tr><th style="width:130px;">构造物名称</th><td>${asset.name}</td><th style="width:130px;">设计行车速度</th><td>${asset.designSpeed}</td></tr>
-                <tr><th>结构特征说明</th><td colspan="3">${asset.structureDesc}</td></tr>
-                <tr><th>三维展现方式</th><td colspan="3">${asset.modelTemplateLabel ? `Blender 5.0 参数化低模复用：<code>${asset.modelTemplateLabel}</code>` : '地图点位标注（服务区/养护工区暂不上模型）'}</td></tr>
-              </tbody>
-            </table>
-            `
-          );
+          openModal(`三维构造物 · ${asset.name}`, [
+            {
+              type: 'stats',
+              items: [
+                { label: '构造物分类', value: asset.categoryLabel },
+                { label: '所属工区 / 桩号', value: `${asset.sectionName} · ${asset.stake}` },
+                { label: '断面标准', value: `${asset.roadbedWidth}（双向四车道）` },
+              ],
+            },
+            {
+              type: 'kvTable',
+              rows: [
+                {
+                  cells: [
+                    { label: '构造物名称', value: asset.name },
+                    { label: '设计行车速度', value: asset.designSpeed },
+                  ],
+                },
+                {
+                  cells: [{ label: '结构特征说明', value: asset.structureDesc, colSpan: 3 }],
+                },
+                {
+                  cells: [
+                    {
+                      label: '三维展现方式',
+                      value: asset.modelTemplateLabel ? 'Blender 5.0 参数化低模复用：' : '地图点位标注（服务区/养护工区暂不上模型）',
+                      code: asset.modelTemplateLabel ?? undefined,
+                      colSpan: 3,
+                    },
+                  ],
+                },
+              ],
+            },
+          ]);
         },
         onFallbackNotice: (msg) => showToast(msg),
       });
 
       if (ok && !cancelled) {
+        const latestMode = effectiveModeRef.current;
         setCesiumReady(true);
-        engine.setRenderActive(usePlatformStore.getState().cesiumMode !== 'opaque');
+        engine.setResolutionMode(latestMode);
+        engine.setRenderActive(latestMode !== 'opaque');
+      } else if (!ok) {
+        bootStartedRef.current = false;
       }
     }
 
     bootCesium().catch((err) => {
+      bootStartedRef.current = false;
       console.warn('[CesiumBackdrop]', err);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [openModalHtml, setCesiumReady, setSelectedPoiId, showToast, toggleSectionId]);
+  }, [openModal, routeCesiumMode, setCesiumReady, setSelectedPoiId, showToast, toggleSectionId]);
 
   useEffect(() => {
     const engine = getGlobalCesiumEngine();
     if (engine.ready) {
-      engine.setRenderActive(cesiumMode !== 'opaque');
+      engine.setResolutionMode(routeCesiumMode);
+      engine.setRenderActive(routeCesiumMode !== 'opaque');
     }
     if (overlayRef.current) {
-      overlayRef.current.style.display = cesiumMode === 'interactive' ? 'block' : 'none';
+      overlayRef.current.style.display = routeCesiumMode === 'interactive' ? 'block' : 'none';
     }
-  }, [cesiumMode]);
+  }, [routeCesiumMode]);
 
   return (
     <>
       <div
         ref={containerRef}
         id="cesiumContainer"
-        className={`cesium-host ${cesiumMode === 'dimmed' ? 'opacity-35' : ''}`}
+        className={`cesium-host ${routeCesiumMode === 'dimmed' ? 'opacity-35' : ''}`}
         style={{
-          visibility: cesiumMode === 'opaque' ? 'hidden' : 'visible',
-          pointerEvents: cesiumMode === 'interactive' ? 'auto' : 'none',
+          visibility: routeCesiumMode === 'opaque' ? 'hidden' : 'visible',
+          pointerEvents: routeCesiumMode === 'interactive' ? 'auto' : 'none',
         }}
       />
       <div className="map-vignette" id="globalMapVignette" />
@@ -133,7 +199,7 @@ export function CesiumBackdrop() {
         ref={overlayRef}
         id="cesiumOverlayRoot"
         className="cesium-overlay-root"
-        style={{ display: cesiumMode === 'interactive' ? 'block' : 'none' }}
+        style={{ display: routeCesiumMode === 'interactive' ? 'block' : 'none' }}
       />
     </>
   );

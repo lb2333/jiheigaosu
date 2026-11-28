@@ -20,7 +20,5 @@ if (!fs.existsSync(standaloneDir)) {
 
 copyDir(path.join(root, '.next', 'static'), path.join(standaloneDir, '.next', 'static'));
 copyDir(path.join(root, 'public'), path.join(standaloneDir, 'public'));
-if (fs.existsSync(path.join(root, '.env.local'))) {
-  fs.copyFileSync(path.join(root, '.env.local'), path.join(standaloneDir, '.env.local'));
-}
-console.log('[prepare-standalone] Synced .next/static, public, and .env.local into .next/standalone');
+fs.rmSync(path.join(standaloneDir, '.env.local'), { force: true });
+console.log('[prepare-standalone] Synced .next/static and public into .next/standalone');

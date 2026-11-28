@@ -25,7 +25,7 @@ import {
   NewTaskModal,
   PreflightModal,
   TaskCalendarModal,
-} from './UavModals';
+} from './UavModalsLazy';
 
 interface TasksResponse {
   tasks: UavTaskDTO[];

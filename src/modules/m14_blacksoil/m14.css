@@ -392,7 +392,10 @@
 .m14-right-body {
   padding: 11px 13px 13px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+.m14-right-body::-webkit-scrollbar {
+  display: none;
 }
 
 .m14-demo-chip {

@@ -328,7 +328,7 @@ export function ReviewSubPage({
                       <span style={{ color: '#8ab4dc' }}>{h.source}影像</span>
                     </div>
                     <div className="m04-photo-box" onClick={() => setShowCompareModal(true)}>
-                      <img src={IMG_PATHS.before} alt="整改前现场影像" />
+                      <img src={IMG_PATHS.before} alt="整改前现场影像" loading="lazy" decoding="async" />
                       <div className="m04-defect-rect" />
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export function ReviewSubPage({
                       <span style={{ color: '#8ab4dc' }}>移动端反馈照片</span>
                     </div>
                     <div className="m04-photo-box" onClick={() => setShowCompareModal(true)}>
-                      <img src={IMG_PATHS.after} alt="整改后现场照片" />
+                      <img src={IMG_PATHS.after} alt="整改后现场照片" loading="lazy" decoding="async" />
                       <div className="m04-guardrail-bar" />
                     </div>
                   </div>
@@ -525,7 +525,7 @@ export function ReviewSubPage({
                       style={{ aspectRatio: '16/10' }}
                       onClick={() => setShowCompareModal(true)}
                     >
-                      <img src={IMG_PATHS.after} alt="现场照片 1" />
+                      <img src={IMG_PATHS.after} alt="现场照片 1" loading="lazy" decoding="async" />
                       <div className="m04-guardrail-bar" />
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#9ec0e6', marginTop: '4px' }}>
@@ -538,7 +538,7 @@ export function ReviewSubPage({
                       style={{ aspectRatio: '16/10' }}
                       onClick={() => setShowCompareModal(true)}
                     >
-                      <img src={IMG_PATHS.showcase} alt="现场照片 2" />
+                      <img src={IMG_PATHS.showcase} alt="现场照片 2" loading="lazy" decoding="async" />
                       <div className="m04-guardrail-bar" style={{ bottom: '32%' }} />
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#9ec0e6', marginTop: '4px' }}>

@@ -31,7 +31,7 @@ import {
   AuthorizeOrderModal,
   CreateOrderModal,
   RevokeOrderModal,
-} from './PublishModals';
+} from './PublishModalsLazy';
 
 interface OrdersResponse {
   orders: PublishOrderDTO[];

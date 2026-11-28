@@ -98,7 +98,7 @@ export function BeforeAfterModal({
               整改前（{hazard.foundAt}）
             </div>
             <div className="m04-photo-box" style={{ aspectRatio: '16/10', cursor: 'default' }}>
-              <img src={IMG_PATHS.before} alt="整改前" />
+              <img src={IMG_PATHS.before} alt="整改前" loading="lazy" decoding="async" />
               <div className="m04-defect-rect" />
             </div>
             <p style={{ fontSize: '12px', color: '#cfe4ff', marginTop: '6px' }}>
@@ -110,7 +110,7 @@ export function BeforeAfterModal({
               整改后（{hazard.feedbackAt || '待上传'}）
             </div>
             <div className="m04-photo-box" style={{ aspectRatio: '16/10', cursor: 'default' }}>
-              <img src={IMG_PATHS.after} alt="整改后" />
+              <img src={IMG_PATHS.after} alt="整改后" loading="lazy" decoding="async" />
               <div className="m04-guardrail-bar" />
             </div>
             <p style={{ fontSize: '12px', color: '#cfe4ff', marginTop: '6px' }}>
@@ -338,7 +338,7 @@ export function RiskCameraModal({
   return (
     <ModalShell title={`现场视频监测 · ${risk.id} ${risk.name}`} onClose={onClose}>
       <div className="media-card playing" style={{ margin: 0 }}>
-        <img src={IMG_PATHS[risk.imgKey] || IMG_PATHS.corridor} alt={risk.name} />
+        <img src={IMG_PATHS[risk.imgKey] || IMG_PATHS.corridor} alt={risk.name} loading="lazy" decoding="async" />
         <div className="media-top-badges">
           <span className="live-pill">
             <span className="live-dot" />
@@ -396,7 +396,7 @@ export function AiFullscreenModal({
   return (
     <ModalShell title={`AI预警证据高清回放 · ${alert.id}`} onClose={onClose}>
       <div className="m04-evidence-frame">
-        <img src={IMG_PATHS[alert.imgKey] || IMG_PATHS.corridor} alt={alert.event} />
+        <img src={IMG_PATHS[alert.imgKey] || IMG_PATHS.corridor} alt={alert.event} loading="lazy" decoding="async" />
         <div className="m04-cam-hud">
           <span className="m04-hud-pill">{alert.camera}</span>
           <span className="m04-hud-pill">{alert.alertTime}</span>

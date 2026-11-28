@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import {
@@ -136,73 +136,59 @@ export async function POST(
       note: `二级授权通过并下发至 ${order.boardIds.length} 块情报板`,
     });
 
-    const [updated] = await db
-      .update(publishOrders)
-      .set({
-        authorizer,
-        authorized: true,
-        status: '已下发',
-        scheduleTime: `11-26 ${now.hm}`,
-        fullTime: `2026-11-26 ${now.hms}`,
-        stepTimes: {
-          ...order.stepTimes,
-          auth: now.hm,
-          dispatch: now.hm,
-        },
-        auditLogs: trail,
-        updatedAt: new Date(),
-      })
-      .where(eq(publishOrders.id, id))
-      .returning();
+    const updated = await db.transaction(async (tx) => {
+      const nowDate = new Date();
+      const [orderRow] = await tx
+        .update(publishOrders)
+        .set({
+          authorizer,
+          authorized: true,
+          status: '已下发',
+          scheduleTime: `11-26 ${now.hm}`,
+          fullTime: `2026-11-26 ${now.hms}`,
+          stepTimes: {
+            ...order.stepTimes,
+            auth: now.hm,
+            dispatch: now.hm,
+          },
+          auditLogs: trail,
+          updatedAt: nowDate,
+        })
+        .where(eq(publishOrders.id, id))
+        .returning();
 
-    const targetBoards = order.boardIds.length
-      ? await db
-          .select()
-          .from(publishBoards)
-          .where(inArray(publishBoards.id, order.boardIds))
-      : [];
-    const boardMap = new Map(targetBoards.map((b) => [b.id, b]));
+      const targetBoards = order.boardIds.length
+        ? await tx
+            .select({ id: publishBoards.id, online: publishBoards.online })
+            .from(publishBoards)
+            .where(inArray(publishBoards.id, order.boardIds))
+        : [];
+      const boardMap = new Map(targetBoards.map((b) => [b.id, b]));
+      const existingBoardIds = targetBoards.map((b) => b.id);
 
-    for (let i = 0; i < order.boardIds.length; i++) {
-      const bid = order.boardIds[i];
-      const b = boardMap.get(bid);
-      const isOnline = b ? b.online : true;
-      if (b) {
-        await db
+      if (existingBoardIds.length > 0) {
+        await tx
           .update(publishBoards)
           .set({
-            prevTitle: `${b.confirmedTitle} · ${order.version}`,
-            prevLine1: b.line1,
-            prevLine2: b.line2,
+            prevTitle: sql`${publishBoards.confirmedTitle} || ' · ' || ${order.version}`,
+            prevLine1: publishBoards.line1,
+            prevLine2: publishBoards.line2,
             lastOrderId: order.id,
             lastTime: `11-26 ${now.hm}`,
             feedbackStatus: '待确认显示',
-            updatedAt: new Date(),
+            updatedAt: nowDate,
           })
-          .where(eq(publishBoards.id, bid));
+          .where(inArray(publishBoards.id, existingBoardIds));
       }
 
-      const recId = `${order.id}__${bid}`;
-      await db
-        .insert(publishReceipts)
-        .values({
-          id: recId,
-          orderId: order.id,
-          boardId: bid,
-          dispatchStatus: '已下发',
-          dispatchTime: now.hms,
-          receiveStatus: isOnline ? '已接收' : '未回执',
-          receiveTime: isOnline ? now.hms : '—',
-          readbackStatus: '未回读',
-          readbackTime: '—',
-          confirmStatus: '待确认显示',
-          confirmTime: '—',
-          verifyRecord: isOnline ? '待设备回读与现场核验' : '设备离线，等待重连回执',
-          sortOrder: i + 1,
-        })
-        .onConflictDoUpdate({
-          target: publishReceipts.id,
-          set: {
+      if (order.boardIds.length > 0) {
+        const receiptValues = order.boardIds.map((bid, i) => {
+          const b = boardMap.get(bid);
+          const isOnline = b ? b.online : true;
+          return {
+            id: `${order.id}__${bid}`,
+            orderId: order.id,
+            boardId: bid,
             dispatchStatus: '已下发',
             dispatchTime: now.hms,
             receiveStatus: isOnline ? '已接收' : '未回执',
@@ -212,27 +198,50 @@ export async function POST(
             confirmStatus: '待确认显示',
             confirmTime: '—',
             verifyRecord: isOnline ? '待设备回读与现场核验' : '设备离线，等待重连回执',
-            updatedAt: new Date(),
-          },
+            sortOrder: i + 1,
+          };
         });
-    }
 
-    // Update linked plan if any
-    await db
-      .update(publishPlans)
-      .set({
-        linkedOrderNote: `${now.hm} 已授权下发`,
-        flowStage: 4,
-        updatedAt: new Date(),
-      })
-      .where(eq(publishPlans.linkedOrderId, order.id));
+        await tx
+          .insert(publishReceipts)
+          .values(receiptValues)
+          .onConflictDoUpdate({
+            target: publishReceipts.id,
+            set: {
+              dispatchStatus: sql`excluded.dispatch_status`,
+              dispatchTime: sql`excluded.dispatch_time`,
+              receiveStatus: sql`excluded.receive_status`,
+              receiveTime: sql`excluded.receive_time`,
+              readbackStatus: sql`excluded.readback_status`,
+              readbackTime: sql`excluded.readback_time`,
+              confirmStatus: sql`excluded.confirm_status`,
+              confirmTime: sql`excluded.confirm_time`,
+              verifyRecord: sql`excluded.verify_record`,
+              updatedAt: nowDate,
+            },
+          });
+      }
 
-    await recordPublishAudit({
-      session,
-      action: 'publish_order_authorize_dispatch',
-      target: id,
-      detail: { authorizer, boardCount: order.boardIds.length },
-      req,
+      // Update linked plan if any
+      await tx
+        .update(publishPlans)
+        .set({
+          linkedOrderNote: `${now.hm} 已授权下发`,
+          flowStage: 4,
+          updatedAt: nowDate,
+        })
+        .where(eq(publishPlans.linkedOrderId, order.id));
+
+      await recordPublishAudit({
+        session,
+        action: 'publish_order_authorize_dispatch',
+        target: id,
+        detail: { authorizer, boardCount: order.boardIds.length },
+        req,
+        executor: tx,
+      });
+
+      return orderRow;
     });
 
     return NextResponse.json({ order: updated });
@@ -271,27 +280,6 @@ export async function POST(
   }
 
   if (d.action === 'restore') {
-    const targetBoards = order.boardIds.length
-      ? await db
-          .select()
-          .from(publishBoards)
-          .where(inArray(publishBoards.id, order.boardIds))
-      : [];
-
-    for (const b of targetBoards) {
-      await db
-        .update(publishBoards)
-        .set({
-          line1: b.prevLine1 || b.line1,
-          line2: b.prevLine2 || b.line2,
-          confirmedTitle: (b.prevTitle || '原板面').split(' · ')[0],
-          feedbackStatus: '已确认显示',
-          verifyTime: `11-26 ${now.hms}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(publishBoards.id, b.id));
-    }
-
     trail.push({
       stage: '恢复原内容',
       actor: session.user.name || '授权员C（演示）',
@@ -300,21 +288,41 @@ export async function POST(
       note: `已授权恢复 ${order.boardIds.length} 块情报板的原板面内容`,
     });
 
-    const [updated] = await db
-      .update(publishOrders)
-      .set({
-        auditLogs: trail,
-        updatedAt: new Date(),
-      })
-      .where(eq(publishOrders.id, id))
-      .returning();
+    const updated = await db.transaction(async (tx) => {
+      const nowDate = new Date();
+      if (order.boardIds.length > 0) {
+        await tx
+          .update(publishBoards)
+          .set({
+            line1: sql`COALESCE(NULLIF(${publishBoards.prevLine1}, ''), ${publishBoards.line1})`,
+            line2: sql`COALESCE(NULLIF(${publishBoards.prevLine2}, ''), ${publishBoards.line2})`,
+            confirmedTitle: sql`split_part(COALESCE(NULLIF(${publishBoards.prevTitle}, ''), '原板面'), ' · ', 1)`,
+            feedbackStatus: '已确认显示',
+            verifyTime: `11-26 ${now.hms}`,
+            updatedAt: nowDate,
+          })
+          .where(inArray(publishBoards.id, order.boardIds));
+      }
 
-    await recordPublishAudit({
-      session,
-      action: 'publish_order_restore',
-      target: id,
-      detail: { boardCount: order.boardIds.length },
-      req,
+      const [orderRow] = await tx
+        .update(publishOrders)
+        .set({
+          auditLogs: trail,
+          updatedAt: nowDate,
+        })
+        .where(eq(publishOrders.id, id))
+        .returning();
+
+      await recordPublishAudit({
+        session,
+        action: 'publish_order_restore',
+        target: id,
+        detail: { boardCount: order.boardIds.length },
+        req,
+        executor: tx,
+      });
+
+      return orderRow;
     });
 
     return NextResponse.json({ order: updated });

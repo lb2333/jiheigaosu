@@ -26,7 +26,7 @@ import {
   type PublishPlanDTO,
   type PublishTemplateDTO,
 } from '../types';
-import { ConfigPlanModal, PlanTriggersModal } from './PublishModals';
+import { ConfigPlanModal, PlanTriggersModal } from './PublishModalsLazy';
 
 interface PlansResponse {
   plans: PublishPlanDTO[];

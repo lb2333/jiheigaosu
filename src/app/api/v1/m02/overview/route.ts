@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { and, asc, eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
+import { PRIVATE_CACHE_HEADERS } from '@/lib/api/auth-guard';
 import { db } from '@/db';
 import { workSections } from '@/db/schema/core';
 import {
@@ -38,13 +39,8 @@ export async function GET(req: NextRequest) {
   const showAll = rawPageSize === 'all';
   const pageSize = showAll ? 100 : Math.max(1, Math.min(50, Number(rawPageSize) || 6));
 
-  const [sections, kpiRows, allPeriodCatRows, trendRows, allDetailRows] = await Promise.all([
+  const [sections, allPeriodCatRows, trendRows, allDetailRows] = await Promise.all([
     db.select().from(workSections).orderBy(asc(workSections.sortOrder)),
-    db
-      .select()
-      .from(progressCategoryStats)
-      .where(and(eq(progressCategoryStats.period, month), eq(progressCategoryStats.sectionId, sectionId)))
-      .orderBy(asc(progressCategoryStats.sortOrder)),
     db
       .select()
       .from(progressCategoryStats)
@@ -61,6 +57,8 @@ export async function GET(req: NextRequest) {
       .where(eq(progressDetailItems.itemScope, 'overview'))
       .orderBy(asc(progressDetailItems.sortOrder)),
   ]);
+
+  const kpiRows = allPeriodCatRows.filter((r) => r.sectionId === sectionId);
 
   // Build section progress matrix
   const matrixRows = sections.map((sec) => {
@@ -112,26 +110,29 @@ export async function GET(req: NextRequest) {
     ? filteredDetails
     : filteredDetails.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  return NextResponse.json({
-    month,
-    sectionId,
-    category,
-    sections: sections.map((s) => ({ id: s.id, name: s.name, stakeRange: s.stakeRange })),
-    kpis: kpiRows,
-    matrix: {
-      rows: matrixRows,
-      allLine: allLineValues,
+  return NextResponse.json(
+    {
+      month,
+      sectionId,
+      category,
+      sections: sections.map((s) => ({ id: s.id, name: s.name, stakeRange: s.stakeRange })),
+      kpis: kpiRows,
+      matrix: {
+        rows: matrixRows,
+        allLine: allLineValues,
+      },
+      trend: {
+        summary: trendSummary,
+        points: trendRows,
+      },
+      details: {
+        rows: pagedDetails,
+        total: totalDetails,
+        page: safePage,
+        pageSize,
+        totalPages,
+      },
     },
-    trend: {
-      summary: trendSummary,
-      points: trendRows,
-    },
-    details: {
-      rows: pagedDetails,
-      total: totalDetails,
-      page: safePage,
-      pageSize,
-      totalPages,
-    },
-  });
+    { headers: PRIVATE_CACHE_HEADERS }
+  );
 }
